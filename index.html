@@ -14,19 +14,18 @@
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* [cite: 160, 232] */
+        /* Responsive Background Layer */
         .background-layer {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: url('wclonglogo.jpeg') no-repeat center center;
-            background-size: cover;
+            background-size: cover; /* Ensures responsiveness across screen sizes */
             z-index: 1;
         }
 
-        /* [cite: 85, 145] */
         .ui-layer {
             position: relative;
             z-index: 10;
@@ -36,18 +35,21 @@
             align-items: center;
         }
 
+        /* Positioned below the 'Worlds Collide' text */
         .interaction-container {
-            margin-top: 45vh; /* [cite: 226] */
+            margin-top: 45vh; 
+            width: 100%;
+            max-width: 500px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
         }
 
-        /* [cite: 138, 206, 227] */
-        .manuscript-frame {
-            border: 20px solid transparent;
-            border-image: url('manucript.jpg') 30 round;
-            background: rgba(0, 0, 0, 0.8);
+        /* Login Window using the Clear Frame from UI Sprite Sheet */
+        .login-frame {
+            border: 40px solid transparent;
+            /* Slicing the gold frame from the top-left of the UI sprite sheet */
+            border-image: url('asset_s4tUfBtY77rmRNnEvbxF1XL8__Sprite sheet of gold 3D pixel-art UI elements based on the classic logo style. Includes empty frames, scroll bars, and \'The Manuscript\' control panel buttons. Transparent background, arran.jpeg') 150 round;
+            background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             color: #ffd700;
             text-align: center;
@@ -58,17 +60,12 @@
             background: #ffd700;
             color: #000;
             border: 4px solid #b8860b;
-            padding: 10px 20px;
+            padding: 10px 25px;
             font-size: 1.2rem;
             cursor: pointer;
             text-transform: uppercase;
             font-weight: bold;
             box-shadow: 4px 4px 0px #000;
-        }
-
-        button:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px #000;
         }
     </style>
 </head>
@@ -78,9 +75,9 @@
 
     <div class="ui-layer">
         <div class="interaction-container">
-            <div class="manuscript-frame" id="login-window">
-                <h2>THE MANUSCRIPT</h2>
-                <p>Secure Entry Protocol</p>
+            <div class="login-frame" id="login-window">
+                <h2 style="margin-top:0;">THE MANUSCRIPT</h2>
+                <p>Awaiting Auth...</p>
                 <button onclick="simulatePasskey()">Create / Login</button>
             </div>
         </div>
@@ -88,9 +85,7 @@
 
     <script>
         function simulatePasskey() {
-            console.log("Initiating WebAuthn/Passkey Handshake...");
-            alert("Passkey simulation: Authenticating with device biometrics...");
-            // [cite: 154, 207]
+            alert("Initiating secure Passkey handshake...");
         }
     </script>
 </body>
