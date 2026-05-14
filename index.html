@@ -21,51 +21,48 @@
             position: relative;
             width: 100vw; height: 100vh;
             display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start;
+            align-items: center; justify-content: center;
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Explicit background layer for GitHub/Cloudflare rendering */
+        /* Explicit background layer using manucript.jpg */
         .background-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #000 url('wclonglogo.jpg') no-repeat center center;
+            background: #000 url('manucript.jpg') no-repeat center center;
             background-size: cover;
             z-index: 1;
         }
 
-        /* Logo positioned in the upper third */
-        #game-branding {
-            margin-top: 10vh;
-            height: 25vh;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 10;
-        }
-
-        .pixel-logo {
-            font-size: clamp(2rem, 8vw, 4.5rem);
-            color: var(--gold-primary);
-            text-shadow: var(--pixel-border) var(--pixel-border) 0px #000, 2px 2px 0px var(--gold-dark);
-            text-transform: uppercase; font-weight: 900; letter-spacing: 2px; text-align: center;
-        }
-
+        /* UI Interaction centered over the dashboard slots */
         #ui-interact {
-            flex-grow: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 15vh; /* Adjusted to align with the manuscript's layout */
         }
 
         .snes-button {
             background: var(--gold-primary);
             border: var(--pixel-border) solid var(--gold-dark);
             box-shadow: var(--pixel-border) var(--pixel-border) 0px #000;
-            padding: 16px 32px; cursor: pointer;
-            font-weight: bold; font-size: 1.1rem; color: #000;
-            text-transform: uppercase; transition: transform 0.1s;
+            padding: 18px 36px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #000;
+            text-transform: uppercase;
+            transition: transform 0.1s;
         }
 
-        .snes-button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
+        .snes-button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
 
-        /* Login Modal using frames from manucript.jpg */
+        /* 2026 Secure Login Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-overlay);
@@ -76,34 +73,40 @@
 
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .manuscript-frame {
-            background: #1a1a1a; padding: 40px; color: #fff; text-align: center;
-            max-width: 90%; width: 440px;
+        .auth-frame {
+            background: #1a1a1a;
+            padding: 40px;
+            color: #fff;
+            text-align: center;
+            max-width: 90%;
+            width: 440px;
             border: 24px solid transparent;
-            border-image-source: url('manucript.jpg'); /* Slicing frames from asset */
-            border-image-slice: 60; border-image-repeat: stretch;
-            box-sizing: border-box; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            /* Using the golden manuscript frames for consistent aesthetic */
+            border-image-source: url('manucript.jpg');
+            border-image-slice: 100; 
+            border-image-repeat: stretch;
+            box-sizing: border-box;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
         }
 
-        #auth-status { margin: 20px 0; min-height: 40px; color: var(--gold-primary); }
+        #auth-status { margin: 20px 0; color: var(--gold-primary); }
     </style>
 </head>
 <body>
     <div class="landing-page">
         <div class="background-layer"></div>
-        <header id="game-branding">
-            <h1 class="pixel-logo">Worlds Collide</h1>
-        </header>
+
         <main id="ui-interact">
             <button id="auth-trigger" class="snes-button">Create / Login</button>
         </main>
+
         <div id="auth-modal" class="modal-overlay">
-            <div class="manuscript-frame">
-                <h2 style="color: var(--gold-primary); text-shadow: 2px 2px 0px #000;">Access The Manuscript</h2>
-                <div id="auth-status">Verify identity to continue...</div>
+            <div class="auth-frame">
+                <h2 style="color: var(--gold-primary); text-shadow: 2px 2px 0px #000;">The Manuscript Access</h2>
+                <div id="auth-status">Verifying WebAuthn Credentials...</div>
                 <button id="passkey-btn" class="snes-button" style="width: 100%;">Continue with Passkey</button>
                 <p style="font-size: 0.75rem; margin-top: 20px; opacity: 0.6;">
-                    <strong>2026 Security Standard:</strong> Phishing-resistant WebAuthn active.
+                    Phishing-resistant 2FA standard active[cite: 64].
                 </p>
             </div>
         </div>
@@ -124,9 +127,9 @@
                 if (passkeyBtn) {
                     passkeyBtn.onclick = () => {
                         passkeyBtn.disabled = true;
-                        status.innerText = "Requesting biometric challenge...";
+                        status.innerText = "Requesting device biometrics...";
                         setTimeout(() => {
-                            status.innerText = "Identity verified. Entering game...";
+                            status.innerText = "Identity verified. Loading Job Lists...";
                             passkeyBtn.innerText = "Verified";
                         }, 1200);
                     };
