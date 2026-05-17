@@ -18,34 +18,31 @@
             overflow: hidden;
         }
 
-        /* Explicit Background Layer Technique [cite: 124, 181] */
+        /* Explicit Background Layer Technique */
         .background-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 1; /* Prevents background from covering interactive UI [cite: 181, 199] */
-            background-image: url('wclonglogo.jpeg'); /* Correct pixel-art landscape background [cite: 3, 186] */
+            z-index: 1;
+            background-image: url('wclonglogo.jpeg'); /* Split tan/gold and purple background */
             background-repeat: no-repeat;
             background-position: center top;
-            
-            /* Fluid scale matching viewport width to keep side creatures visible [cite: 17] */
             background-size: 100% auto; 
         }
 
-        /* Hard scaling limit threshold for split-window/half-window views [cite: 17, 18] */
+        /* Responsive threshold halting downscaling at half-window view */
         @media (max-width: 1024px) {
             .background-layer {
-                /* Halts fluid downscaling and locks minimum size to prevent UI clipping [cite: 18, 19] */
                 background-size: 1024px auto;
             }
         }
 
-        /* Interactive Component Layer [cite: 182] */
+        /* UI Overlay Container */
         .ui-container {
             position: relative;
-            z-index: 10; /* Locked above background to ensure elements stay clickable [cite: 182, 199] */
+            z-index: 10;
             width: 100%;
             height: 100vh;
             display: flex;
@@ -53,57 +50,80 @@
             align-items: flex-start;
         }
 
-        /* Sliced UI Frame using the Clear Frame from Sprite Sheet [cite: 204, 208] */
-        .login-frame {
-            /* Anchors login elements directly below the upper-third logo space [cite: 42, 206] */
-            margin-top: 45vh; 
-            width: 380px;
-            padding: 25px;
-            background-color: rgba(0, 0, 0, 0.85);
+        /* Final Fantasy VI Style Menu Window */
+        .ff-login-window {
+            margin-top: 48vh; /* Positioned cleanly beneath the upper-third logo space */
+            width: 400px;
+            padding: 20px;
             
-            /* Programmatic border-slicing preserving pixel-art corners [cite: 95, 209, 216] */
-            border-style: solid;
-            border-width: 20px;
-            border-image: url('manucript.jpg') 150 retry; /* Uses 150px cutting instructions [cite: 219] */
-            image-rendering: pixelated; /* Enforces sharp, non-blurry SNES scaling retro style [cite: 5, 218] */
+            /* Color Composition: Deep purple fill with a classic retro tan/gold double-border */
+            background-color: #1a0926; 
+            border: 4px solid #e5c158;
+            outline: 2px solid #000;
+            box-shadow: inset 0 0 0 2px #3c1e5a, 0 8px 16px rgba(0,0,0,0.8);
             
-            text-align: center;
-            color: #ffffff;
+            border-radius: 4px;
         }
 
-        .menu-title {
-            font-size: 1.2rem;
-            color: #ffd700;
-            margin-bottom: 20px;
+        .ff-form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .ff-label {
+            display: block;
+            color: #e5c158; /* Tan label text */
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 2px 2px #000;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-weight: bold;
+            text-shadow: 1px 1px #000;
         }
 
-        /* High-contrast retro metallic gold action button [cite: 44, 63] */
-        .btn-passkey {
-            display: inline-block;
-            padding: 12px 20px;
-            font-size: 0.95rem;
+        /* Classic Retro Text Input Slot */
+        .ff-input-email {
+            width: 100%;
+            padding: 10px;
             font-family: inherit;
-            color: #000000;
-            background-color: #ffd700;
-            border: 4px solid #b8860b;
-            box-shadow: 0 4px #000000;
-            cursor: pointer;
+            font-size: 1rem;
+            color: #ffffff;
+            background-color: #000000;
+            border: 2px solid #3c1e5a;
+            outline: none;
+        }
+
+        .ff-input-email:focus {
+            border-color: #e5c158; /* Highlights tan on selection */
+        }
+
+        /* FF6 Style Action Button */
+        .ff-btn-login {
+            width: 100%;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 1rem;
             font-weight: bold;
             text-transform: uppercase;
+            cursor: pointer;
+            
+            /* Tan/gold primary button layout with purple text */
+            color: #1a0926;
+            background-color: #e5c158;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px #000000;
         }
 
-        .btn-passkey:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 #000000;
+        .ff-btn-login:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #000000;
         }
 
-        /* Invisible protection alignment slot [cite: 70, 103] */
-        .turnstile-container {
-            margin-top: 15px;
-            min-height: 20px;
+        .turnstile-holder {
+            margin-top: 12px;
+            font-size: 0.7rem;
+            color: #3c1e5a;
+            text-align: center;
         }
     </style>
 </head>
@@ -112,26 +132,30 @@
     <div class="background-layer"></div>
 
     <div class="ui-container">
-        <div class="login-frame">
-            <div class="menu-title">Gate of Fates</div>
+        <div class="ff-login-window">
+            <form onsubmit="handleEmailLogin(event)">
+                <div class="ff-form-group">
+                    <label class="ff-label">Enter E-Mail Address</label>
+                    <input type="email" class="ff-input-email" autocomplete="email" required placeholder="player@wcgroups.com">
+                </div>
+                
+                <button type="submit" class="ff-btn-login">Confirm</button>
+            </form>
             
-            <button class="btn-passkey" onclick="handlePasskeyLogin()">Continue with Passkey</button>
-            
-            <div class="turnstile-container">
-                <div id="cf-turnstile-simulated" style="color: #666; font-size: 0.75rem;">[ Cloudflare Turnstile Secure ]</div>
-            </div>
+            <div class="turnstile-holder">[ System Secure ]</div>
         </div>
     </div>
 
     <script>
-        // Local simulation fallback preventing DOM execution dependencies [cite: 106, 120]
         window.addEventListener('load', () => {
-            console.log("Worlds Collide Landing Engine Initialized.");
+            console.log("Worlds Collide Retro Menu Interface Initialized.");
         });
 
-        function handlePasskeyLogin() {
-            console.log("Initiating WebAuthn handshake credential request..."); /* [cite: 111, 164] */
-            alert("Requesting secure device cryptographic handshake...");
+        function handleEmailLogin(event) {
+            event.preventDefault();
+            const emailInput = document.querySelector('.ff-input-email').value;
+            console.log("Processing login token submission for: " + emailInput);
+            alert("Handshake initialized for: " + emailInput);
         }
     </script>
 </body>
