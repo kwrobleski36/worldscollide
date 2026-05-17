@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Worlds Collide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* Base Reset */
         * {
@@ -14,7 +15,8 @@
 
         body {
             background-color: #000;
-            font-family: 'Courier New', Courier, monospace;
+            /* Applies the retro 8-bit font style across all text overlays */
+            font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
             overflow: hidden;
         }
 
@@ -26,12 +28,13 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            background-image: url('wclonglogo.jpeg'); /* Split tan/gold and purple background */
+            /* Maps your new background featuring the white rabbit and demon cat */
+            background-image: url("asset_rUg1f7Zaie6kw7EeVrkB6D4Q__Wide landscape-oriented landing page background based on the classic logo, 16_9 aspect ratio. Center_ large gold 3D pixel-art text 'Worlds Collide' at the top of the art. Left side_ forest f.jpg");
             background-repeat: no-repeat;
             background-position: center top;
             
-            /* Stretches the asset to completely cover width and height, eliminating black space */
-            background-size: 100% 100%; 
+            /* Stretches the asset to completely fill screen height and width */
+            background-size: 100% 100%; [cite: 677]
         }
 
         /* UI Overlay Container */
@@ -47,11 +50,11 @@
 
         /* Final Fantasy VI Style Menu Window */
         .ff-login-window {
-            margin-top: 55vh; /* Lowered from 48vh to push the menu further down the page */
-            width: 400px;
-            padding: 20px;
+            margin-top: 55vh; /* Retains the lowered layout constraint */ [cite: 679]
+            width: 420px;
+            padding: 24px;
             
-            /* Color Composition: Deep purple fill with a classic retro tan/gold double-border */
+            /* Color Composition: Deep purple fill with the classic retro tan/gold double-border */ [cite: 671]
             background-color: #1a0926; 
             border: 4px solid #e5c158;
             outline: 2px solid #000;
@@ -61,17 +64,17 @@
         }
 
         .ff-form-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             text-align: left;
         }
 
         .ff-label {
             display: block;
-            color: #e5c158; /* Tan label text */
-            font-size: 0.85rem;
+            color: #e5c158; /* Tan label text */ [cite: 671]
+            font-size: 0.65rem; /* Scaled down for 8-bit font readability */
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
         }
@@ -79,30 +82,31 @@
         /* Classic Retro Text Input Slot */
         .ff-input-email {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.75rem;
             color: #ffffff;
             background-color: #000000;
             border: 2px solid #3c1e5a;
             outline: none;
+            letter-spacing: 1px;
         }
 
         .ff-input-email:focus {
-            border-color: #e5c158; /* Highlights tan on selection */
+            border-color: #e5c158; /* Highlights tan border on selection */
         }
 
         /* FF6 Style Action Button */
         .ff-btn-login {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
             
-            /* Tan/gold primary button layout with purple text */
+            /* Tan/gold primary button layout with purple text */ [cite: 671]
             color: #1a0926;
             background-color: #e5c158;
             border: 2px solid #ffffff;
@@ -115,10 +119,11 @@
         }
 
         .turnstile-holder {
-            margin-top: 12px;
-            font-size: 0.7rem;
-            color: #3c1e5a;
+            margin-top: 14px;
+            font-size: 0.5rem;
+            color: #5c3582;
             text-align: center;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -143,7 +148,7 @@
 
     <script>
         window.addEventListener('load', () => {
-            console.log("Worlds Collide Retro Menu Interface Initialized.");
+            console.log("Worlds Collide Pixel-Font Menu Interface Initialized.");
         });
 
         function handleEmailLogin(event) {
