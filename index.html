@@ -3,69 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - Landing</title>
+    <title>Worlds Collide</title>
     <style>
-        body, html {
+        /* Base Reset */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Responsive Background Layer */
+        body {
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        /* Explicit Background Layer Technique [cite: 124, 181] */
         .background-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: url('wclonglogo.jpeg') no-repeat center center;
-            background-size: cover; /* Ensures responsiveness across screen sizes */
-            z-index: 1;
+            z-index: 1; /* Prevents background from covering interactive UI [cite: 181, 199] */
+            background-image: url('wclonglogo.jpeg'); /* Correct pixel-art landscape background [cite: 3, 186] */
+            background-repeat: no-repeat;
+            background-position: center top;
+            
+            /* Fluid scale matching viewport width to keep side creatures visible [cite: 17] */
+            background-size: 100% auto; 
         }
 
-        .ui-layer {
+        /* Hard scaling limit threshold for split-window/half-window views [cite: 17, 18] */
+        @media (max-width: 1024px) {
+            .background-layer {
+                /* Halts fluid downscaling and locks minimum size to prevent UI clipping [cite: 18, 19] */
+                background-size: 1024px auto;
+            }
+        }
+
+        /* Interactive Component Layer [cite: 182] */
+        .ui-container {
             position: relative;
-            z-index: 10;
+            z-index: 10; /* Locked above background to ensure elements stay clickable [cite: 182, 199] */
+            width: 100%;
             height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Positioned below the 'Worlds Collide' text */
-        .interaction-container {
-            margin-top: 45vh; 
-            width: 100%;
-            max-width: 500px;
-            display: flex;
             justify-content: center;
+            align-items: flex-start;
         }
 
-        /* Login Window using the Clear Frame from UI Sprite Sheet */
+        /* Sliced UI Frame using the Clear Frame from Sprite Sheet [cite: 204, 208] */
         .login-frame {
-            border: 40px solid transparent;
-            /* Slicing the gold frame from the top-left of the UI sprite sheet */
-            border-image: url('asset_s4tUfBtY77rmRNnEvbxF1XL8__Sprite sheet of gold 3D pixel-art UI elements based on the classic logo style. Includes empty frames, scroll bars, and \'The Manuscript\' control panel buttons. Transparent background, arran.jpeg') 150 round;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            color: #ffd700;
+            /* Anchors login elements directly below the upper-third logo space [cite: 42, 206] */
+            margin-top: 45vh; 
+            width: 380px;
+            padding: 25px;
+            background-color: rgba(0, 0, 0, 0.85);
+            
+            /* Programmatic border-slicing preserving pixel-art corners [cite: 95, 209, 216] */
+            border-style: solid;
+            border-width: 20px;
+            border-image: url('manucript.jpg') 150 retry; /* Uses 150px cutting instructions [cite: 219] */
+            image-rendering: pixelated; /* Enforces sharp, non-blurry SNES scaling retro style [cite: 5, 218] */
+            
             text-align: center;
-            image-rendering: pixelated;
+            color: #ffffff;
         }
 
-        button {
-            background: #ffd700;
-            color: #000;
-            border: 4px solid #b8860b;
-            padding: 10px 25px;
+        .menu-title {
             font-size: 1.2rem;
-            cursor: pointer;
+            color: #ffd700;
+            margin-bottom: 20px;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px #000;
+        }
+
+        /* High-contrast retro metallic gold action button [cite: 44, 63] */
+        .btn-passkey {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: #000000;
+            background-color: #ffd700;
+            border: 4px solid #b8860b;
+            box-shadow: 0 4px #000000;
+            cursor: pointer;
             font-weight: bold;
-            box-shadow: 4px 4px 0px #000;
+            text-transform: uppercase;
+        }
+
+        .btn-passkey:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #000000;
+        }
+
+        /* Invisible protection alignment slot [cite: 70, 103] */
+        .turnstile-container {
+            margin-top: 15px;
+            min-height: 20px;
         }
     </style>
 </head>
@@ -73,19 +111,27 @@
 
     <div class="background-layer"></div>
 
-    <div class="ui-layer">
-        <div class="interaction-container">
-            <div class="login-frame" id="login-window">
-                <h2 style="margin-top:0;">THE MANUSCRIPT</h2>
-                <p>Awaiting Auth...</p>
-                <button onclick="simulatePasskey()">Create / Login</button>
+    <div class="ui-container">
+        <div class="login-frame">
+            <div class="menu-title">Gate of Fates</div>
+            
+            <button class="btn-passkey" onclick="handlePasskeyLogin()">Continue with Passkey</button>
+            
+            <div class="turnstile-container">
+                <div id="cf-turnstile-simulated" style="color: #666; font-size: 0.75rem;">[ Cloudflare Turnstile Secure ]</div>
             </div>
         </div>
     </div>
 
     <script>
-        function simulatePasskey() {
-            alert("Initiating secure Passkey handshake...");
+        // Local simulation fallback preventing DOM execution dependencies [cite: 106, 120]
+        window.addEventListener('load', () => {
+            console.log("Worlds Collide Landing Engine Initialized.");
+        });
+
+        function handlePasskeyLogin() {
+            console.log("Initiating WebAuthn handshake credential request..."); /* [cite: 111, 164] */
+            alert("Requesting secure device cryptographic handshake...");
         }
     </script>
 </body>
