@@ -29,14 +29,9 @@
             background-image: url('wclonglogo.jpeg'); /* Split tan/gold and purple background */
             background-repeat: no-repeat;
             background-position: center top;
-            background-size: 100% auto; 
-        }
-
-        /* Responsive threshold halting downscaling at half-window view */
-        @media (max-width: 1024px) {
-            .background-layer {
-                background-size: 1024px auto;
-            }
+            
+            /* Stretches the asset to completely cover width and height, eliminating black space */
+            background-size: 100% 100%; 
         }
 
         /* UI Overlay Container */
@@ -52,7 +47,7 @@
 
         /* Final Fantasy VI Style Menu Window */
         .ff-login-window {
-            margin-top: 48vh; /* Positioned cleanly beneath the upper-third logo space */
+            margin-top: 55vh; /* Lowered from 48vh to push the menu further down the page */
             width: 400px;
             padding: 20px;
             
