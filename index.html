@@ -18,6 +18,11 @@
             overflow: hidden;
         }
 
+        /* Enforces the retro pixel font layout for user typing metrics and input holders */
+        input, select, textarea, button, input::placeholder {
+            font-family: 'Press Start 2P', monospace !important;
+        }
+
         .background-layer {
             position: fixed;
             top: 0;
@@ -41,10 +46,10 @@
             align-items: flex-start;
         }
 
-        /* Final Fantasy VI Style Menu Window Configuration */
+        /* Final Fantasy VI Style Main Menu Box */
         .ff-login-window {
             margin-top: 55vh;
-            width: 420px;
+            width: 440px;
             padding: 24px;
             background-color: #1a0926; 
             border: 4px solid #e5c158;
@@ -72,7 +77,6 @@
         .ff-input-field {
             width: 100%;
             padding: 12px;
-            font-family: inherit;
             font-size: 0.75rem;
             color: #ffffff;
             background-color: #000000;
@@ -85,10 +89,16 @@
             border-color: #e5c158;
         }
 
+        /* Style configurations specifically targeting the 8-bit entry placeholders */
+        .ff-input-field::placeholder {
+            color: #5c3582;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+
         .ff-btn-action {
             width: 100%;
             padding: 14px;
-            font-family: inherit;
             font-size: 0.8rem;
             font-weight: bold;
             text-transform: uppercase;
@@ -110,6 +120,56 @@
             color: #5c3582;
             text-align: center;
             letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Custom integrated FF6 Style Notice Dialog Modal */
+        .ff-dialog-overlay {
+            display: none; /* Controlled contextually via runtime scripts */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ff-dialog-box {
+            width: 380px;
+            padding: 20px;
+            background-color: #1a0926;
+            border: 4px solid #e5c158;
+            outline: 2px solid #000;
+            box-shadow: inset 0 0 0 2px #3c1e5a;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .ff-dialog-message {
+            color: #ffffff;
+            font-size: 0.65rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
+        }
+
+        .ff-dialog-btn {
+            padding: 10px 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #ffffff;
+            background-color: #3c1e5a;
+            border: 2px solid #e5c158;
+            text-transform: uppercase;
+        }
+
+        .ff-dialog-btn:active {
+            background-color: #1a0926;
         }
     </style>
 </head>
@@ -120,18 +180,18 @@
     <div class="ui-container">
         <div class="ff-login-window">
             
-            <form id="email-stage" onsubmit="requestCode(event)">
+            <form id="email-stage" onsubmit="requestCode(event)" novalidate>
                 <div class="ff-form-group">
                     <label class="ff-label">Enter E-Mail Address</label>
-                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" required placeholder="player@wcgroups.com">
+                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" placeholder="player@wcgroups.com">
                 </div>
                 <button type="submit" class="ff-btn-action">Confirm</button>
             </form>
 
-            <form id="code-stage" onsubmit="verifyCode(event)" style="display: none;">
+            <form id="code-stage" onsubmit="verifyCode(event)" style="display: none;" novalidate>
                 <div class="ff-form-group">
                     <label class="ff-label">Enter Secret Token</label>
-                    <input type="text" id="auth-code" class="ff-input-field" maxlength="6" pattern="\d{6}" required placeholder="000000">
+                    <input type="text" id="auth-code" class="ff-input-field" maxlength="6" placeholder="000000">
                 </div>
                 <button type="submit" class="ff-btn-action">Verify</button>
             </form>
@@ -140,19 +200,44 @@
         </div>
     </div>
 
+    <div id="custom-dialog" class="ff-dialog-overlay">
+        <div class="ff-dialog-box">
+            <div id="dialog-text" class="ff-dialog-message">System Alert Message</div>
+            <button class="ff-dialog-btn" onclick="closeDialog()">Dismiss</button>
+        </div>
+    </div>
+
     <script>
         let currentSessionEmail = "";
 
+        // Triggers the stylized modal popup frame loop mapping
+        function triggerFFAlert(msg) {
+            document.getElementById('dialog-text').innerText = msg;
+            document.getElementById('custom-dialog').style.display = 'flex';
+        }
+
+        function closeDialog() {
+            document.getElementById('custom-dialog').style.display = 'none';
+        }
+
         async function requestCode(event) {
             event.preventDefault();
-            const emailInput = document.getElementById('user-email').value;
+            const emailInput = document.getElementById('user-email').value.trim();
             const statusDisplay = document.getElementById('status-display');
             
+            // Explicit programmatic syntax checker matching step 
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailInput || !emailRegex.test(emailInput)) {
+                triggerFFAlert("Invalid configuration: Please input a structured e-mail address matrix.");
+                return;
+            }
+
             statusDisplay.innerText = "CONNECTING...";
             statusDisplay.style.color = "#ffffff";
 
             try {
-                const response = await fetch('/functions/api/request-code', {
+                // Correct live relative path structure mapping parameters
+                const response = await fetch('/api/request-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: emailInput })
@@ -161,32 +246,39 @@
 
                 if (data.success) {
                     currentSessionEmail = emailInput;
-                    // Switches visible form containers via display toggles
                     document.getElementById('email-stage').style.display = 'none';
                     document.getElementById('code-stage').style.display = 'block';
                     
                     statusDisplay.innerText = "INPUT VERIFICATION CODE";
                     statusDisplay.style.color = "#e5c158";
                 } else {
-                    statusDisplay.innerText = `ERROR: ${data.error}`;
+                    statusDisplay.innerText = `ERROR`;
                     statusDisplay.style.color = "#ff0000";
+                    triggerFFAlert(`Execution failure: ${data.error}`);
                 }
             } catch (error) {
                 statusDisplay.innerText = "CONNECTION FAILED";
                 statusDisplay.style.color = "#ff0000";
+                triggerFFAlert("Connection error: Unable to link with edge worker transaction routing layers.");
             }
         }
 
         async function verifyCode(event) {
             event.preventDefault();
-            const codeInput = document.getElementById('auth-code').value;
+            const codeInput = document.getElementById('auth-code').value.trim();
             const statusDisplay = document.getElementById('status-display');
+
+            if (!/^\d{6}$/.test(codeInput)) {
+                triggerFFAlert("Invalid context: Passcode parameter requires exactly 6 numerical units.");
+                return;
+            }
 
             statusDisplay.innerText = "VERIFYING TOKENS...";
             statusDisplay.style.color = "#ffffff";
 
             try {
-                const response = await fetch('/functions/api/verify-code', {
+                // Correct relative endpoint mapping parameters 
+                const response = await fetch('/api/verify-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: currentSessionEmail, code: codeInput })
@@ -196,14 +288,16 @@
                 if (data.success) {
                     statusDisplay.innerText = `ACCESS: ${data.user.role}`;
                     statusDisplay.style.color = "#00ff00";
-                    console.log("Account context loaded:", data.user);
+                    console.log("Account database session verified:", data.user);
                 } else {
-                    statusDisplay.innerText = `DENIED: ${data.error}`;
+                    statusDisplay.innerText = `DENIED`;
                     statusDisplay.style.color = "#ff0000";
+                    triggerFFAlert(`Validation failure: ${data.error}`);
                 }
             } catch (error) {
                 statusDisplay.innerText = "TRANSACTION ERROR";
                 statusDisplay.style.color = "#ff0000";
+                triggerFFAlert("Transaction error: Execution validation tracking timeline timeout.");
             }
         }
     </script>
