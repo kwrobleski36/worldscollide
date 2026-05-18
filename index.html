@@ -33,7 +33,7 @@
             z-index: 1;
         }
 
-        /* Authentication View Layout */
+        /* Authentication UI Box */
         .auth-container {
             position: relative;
             z-index: 10;
@@ -59,7 +59,6 @@
             font-size: 12px;
             margin-bottom: 20px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .form-group {
@@ -117,31 +116,32 @@
             background-color: #513085;
         }
 
-        /* Main Game View Layout */
+        /* Main Desktop Workspace HUD Grid */
         .game-container {
             position: relative;
             z-index: 5;
             width: 100%;
             height: 100%;
             display: none;
-            padding: 25px;
+            padding: 20px;
             gap: 20px;
-            background-color: #000;
+            background-color: #05020c;
         }
 
-        /* Left Scroll Panel Slicing Implementation */
+        /* Sliced Scroll Element replacing the Left Boxes */
         .left-scroll-panel {
-            width: 340px;
+            width: 330px;
             height: 100%;
             border-style: solid;
-            border-width: 65px 40px 65px 40px;
-            border-image: url('smallscroll.jpg') 140 90 140 90 fill repeat;
+            border-width: 70px 35px 70px 35px;
+            border-image: url('smallscroll.jpg') 140 75 140 75 fill repeat;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            color: #38220f;
-            margin: -35px 0 -35px 0;
-            padding: 10px 0 10px 0;
+            color: #3d230d;
+            margin-top: -30px;
+            margin-bottom: -30px;
+            padding: 5px 0 5px 0;
         }
 
         .scroll-section {
@@ -151,31 +151,31 @@
         .scroll-title {
             font-size: 10px;
             text-transform: uppercase;
-            border-bottom: 2px dashed #6e4b2a;
+            border-bottom: 2px dashed #7a502c;
             padding-bottom: 6px;
             margin-bottom: 12px;
-            color: #1f1105;
+            color: #211104;
             font-weight: bold;
         }
 
         .player-badge {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             font-size: 9px;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .profile-placeholder {
-            width: 50px;
-            height: 50px;
-            background-color: #523920;
-            border: 2px solid #1f1105;
-            margin-bottom: 4px;
+            width: 48px;
+            height: 48px;
+            background-color: #59391d;
+            border: 2px solid #211104;
+            margin-bottom: 2px;
         }
 
         .resource-metrics {
-            margin-top: 20px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -190,20 +190,20 @@
 
         .clock-display {
             font-size: 8px;
-            color: #5e1919;
+            color: #731212;
             text-align: center;
-            padding: 6px;
-            background-color: rgba(0, 0, 0, 0.05);
-            border: 1px dashed #6e4b2a;
-            margin-bottom: 10px;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.04);
+            border: 1px dashed #7a502c;
+            margin-bottom: 12px;
         }
 
-        /* Right Dashboard Workspace */
+        /* Right Workspace Panel Layout matching image_fa5ce6.png */
         .manuscript-workspace {
             flex: 1;
             height: 100%;
-            background-color: #000;
-            border: 4px solid #d4af37;
+            background-color: #030107;
+            border: 3px solid #d4af37;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -211,19 +211,36 @@
 
         .workspace-header {
             border-bottom: 2px solid #d4af37;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             color: #f2e3c6;
-            font-size: 12px;
+            font-size: 11px;
+            display: flex;
+            gap: 30px;
+            text-transform: uppercase;
+        }
+
+        .workspace-tab {
+            color: #8c72b0;
+            cursor: pointer;
+        }
+
+        .workspace-tab.active {
+            color: #d4af37;
         }
 
         .workspace-content {
             flex: 1;
-            margin-top: 20px;
-            color: #666;
+            margin-top: 30px;
+            color: #5d4485;
             font-size: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* Custom Dialogue Box Overlays */
+        /* Dialogue Box Overlays */
         .dialogue-overlay {
             position: fixed;
             top: 0;
@@ -284,45 +301,52 @@
     <div class="game-container" id="gameInterface">
         <div class="left-scroll-panel">
             <div class="scroll-section">
-                <div class="scroll-title">Character</div>
+                <div class="scroll-title">Profile</div>
                 <div class="player-badge">
                     <div class="profile-placeholder"></div>
                     <div>NAME: <span id="hudName">...</span></div>
-                    <div>ROLE: <span id="hudRole">...</span></div>
-                    <div>RANK: Lv.<span id="hudLevel">1</span></div>
-                    <div>AGE: <span id="hudAge">1</span> Days</div>
+                    <div>LVL: <span id="hudLevel">01</span></div>
+                    <div>AGE: <span id="hudAge">1</span></div>
+                    <div>TITLE: <span id="hudRole">GM</span></div>
                 </div>
             </div>
 
             <div class="scroll-section">
-                <div class="scroll-title">Vitals & Job</div>
+                <div class="scroll-title">Chronometer Engine</div>
                 <div class="clock-display">
                     ⌛ <span id="globalClock">00:00:00 UTC</span>
                 </div>
                 <div class="resource-metrics">
+                    <div class="scroll-title" style="border-bottom: 1px dashed #7a502c; margin-bottom: 8px;">Passive Pools</div>
                     <div class="metric-row">
                         <span>ENERGY:</span>
-                        <span><span id="curEnergy">0</span>/<span id="maxEnergy">0</span></span>
+                        <span><span id="curEnergy">150</span>/<span id="maxEnergy">150</span></span>
                     </div>
-                    <div class="metric-row">
+                    <div class="metric-row" style="margin-bottom: 12px;">
                         <span>WILLPOWER:</span>
-                        <span><span id="curWill">0</span>/<span id="maxWill">0</span></span>
+                        <span><span id="curWill">100</span>/<span id="maxWill">100</span></span>
                     </div>
+                    <div class="scroll-title" style="border-bottom: 1px dashed #7a502c; margin-bottom: 8px;">Active Profession</div>
                     <div class="metric-row">
-                        <span>ACTIVE JOB:</span>
-                        <span id="hudJob">None</span>
+                        <span>JOB:</span>
+                        <span id="hudJob">UNASSIGNED</span>
                     </div>
                     <div class="metric-row">
                         <span>JOB POINTS:</span>
-                        <span id="hudJP">0</span>
+                        <span><span id="hudJP">0000</span> JP</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="manuscript-workspace">
-            <div class="workspace-header">[ THE MANUSCRIPT INTERFACE ]</div>
-            <div class="workspace-content">System placeholders active...</div>
+            <div class="workspace-header">
+                <span class="workspace-tab active">[ Profile ]</span>
+                <span class="workspace-tab">[ Profession ]</span>
+                <span class="workspace-tab">[ Labors ]</span>
+                <span class="workspace-tab">[ Army ]</span>
+            </div>
+            <div class="workspace-content">The Manuscript Workspace</div>
         </div>
     </div>
 
@@ -336,7 +360,6 @@
     <script>
         let currentEmail = '';
 
-        // Dialog Handler
         function showMessage(text) {
             document.getElementById('dialogueMsg').innerText = text;
             document.getElementById('dialogueBox').style.display = 'flex';
@@ -346,34 +369,34 @@
             document.getElementById('dialogueBox').style.display = 'none';
         });
 
-        // Universal Chronometer Thread Matrix
         function initClock() {
             setInterval(() => {
                 const now = new Date();
-                const utcStr = now.toISOString().substring(11, 19) + " UTC";
+                const utcStr = now.toISOString().replace('T', ' ').substring(0, 19) + " UTC";
                 document.getElementById('globalClock').innerText = utcStr;
             }, 1000);
         }
 
-        // Direct DOM State Mapper
         function renderGameUI(userData) {
             document.getElementById('bgLayer').style.display = 'none';
             document.getElementById('authInterface').style.display = 'none';
             document.getElementById('gameInterface').style.display = 'flex';
 
-            document.getElementById('hudName').innerText = userData.email.split('@')[0];
-            document.getElementById('hudRole').innerText = userData.role;
-            document.getElementById('hudLevel').innerText = userData.level;
-            document.getElementById('hudAge').innerText = userData.age;
-            document.getElementById('curEnergy').innerText = userData.energy;
-            document.getElementById('maxEnergy').innerText = userData.max_energy;
-            document.getElementById('curWill').innerText = userData.willpower;
-            document.getElementById('maxWill').innerText = userData.max_willpower;
+            document.getElementById('hudName').innerText = userData.email.split('@')[0].toUpperCase();
+            document.getElementById('hudRole').innerText = (userData.role || 'GM').toUpperCase();
+            document.getElementById('hudLevel').innerText = String(userData.level || 1).padStart(2, '0');
+            document.getElementById('hudAge').innerText = userData.age || 1;
+            document.getElementById('curEnergy').innerText = userData.energy || 150;
+            document.getElementById('maxEnergy').innerText = userData.max_energy || 150;
+            document.getElementById('curWill').innerText = userData.willpower || 100;
+            document.getElementById('maxWill').innerText = userData.max_willpower || 100;
+            document.getElementById('hudJob').innerText = (userData.job || 'UNASSIGNED').toUpperCase();
+            document.getElementById('hudJP').innerText = String(userData.job_points || 0).padStart(4, '0');
 
             initClock();
         }
 
-        // Phase 0: Persistent Local Handshake Verification Check
+        // Session Checker Initialization Logic
         document.addEventListener('DOMContentLoaded', () => {
             const cachedSession = localStorage.getItem('wc_active_session');
             if (cachedSession) {
@@ -388,7 +411,7 @@
             }
         });
 
-        // Phase 1 Request Endpoint
+        // Step 1: Request OTP Pin Code
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const emailInput = document.getElementById('userEmail').value.trim();
@@ -418,7 +441,7 @@
             }
         });
 
-        // Phase 2 Validation Verification Endpoint
+        // Step 2: Verify Pin Code & Cache Session State
         document.getElementById('btnVerify').addEventListener('click', async () => {
             const tokenInput = document.getElementById('verifyToken').value.trim();
             const keepLogged = document.getElementById('keepLoggedIn').checked;
@@ -442,7 +465,6 @@
                     return;
                 }
 
-                // If check box flag evaluates true, record dataset directly into the local device context
                 if (keepLogged && data.user) {
                     localStorage.setItem('wc_active_session', JSON.stringify(data.user));
                 }
