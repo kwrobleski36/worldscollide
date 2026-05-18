@@ -66,6 +66,23 @@
             margin-bottom: 18px;
         }
 
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #f2e3c6;
+            font-size: 8px;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 10px;
+        }
+
+        .checkbox-row input {
+            cursor: pointer;
+            accent-color: #d4af37;
+        }
+
         .ff-input {
             width: 100%;
             padding: 12px;
@@ -107,22 +124,24 @@
             width: 100%;
             height: 100%;
             display: none;
-            padding: 15px;
-            gap: 15px;
+            padding: 25px;
+            gap: 20px;
+            background-color: #000;
         }
 
-        /* Unified Left Scroll Column */
+        /* Left Scroll Panel Slicing Implementation */
         .left-scroll-panel {
-            width: 320px;
+            width: 340px;
             height: 100%;
-            background-image: url('smallscroll.jpg');
-            background-size: 100% 100%;
-            padding: 45px 30px 45px 30px;
+            border-style: solid;
+            border-width: 65px 40px 65px 40px;
+            border-image: url('smallscroll.jpg') 140 90 140 90 fill repeat;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            color: #4a2f13;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+            color: #38220f;
+            margin: -35px 0 -35px 0;
+            padding: 10px 0 10px 0;
         }
 
         .scroll-section {
@@ -130,12 +149,13 @@
         }
 
         .scroll-title {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            border-bottom: 2px dashed #7a5835;
+            border-bottom: 2px dashed #6e4b2a;
             padding-bottom: 6px;
             margin-bottom: 12px;
-            color: #2b1a08;
+            color: #1f1105;
+            font-weight: bold;
         }
 
         .player-badge {
@@ -149,13 +169,13 @@
         .profile-placeholder {
             width: 50px;
             height: 50px;
-            background-color: #61462a;
-            border: 2px solid #2b1a08;
+            background-color: #523920;
+            border: 2px solid #1f1105;
             margin-bottom: 4px;
         }
 
         .resource-metrics {
-            margin-top: 25px;
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -172,9 +192,9 @@
             font-size: 8px;
             color: #5e1919;
             text-align: center;
-            padding: 4px;
-            background-color: rgba(255,255,255,0.2);
-            border: 1px solid #7a5835;
+            padding: 6px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border: 1px dashed #6e4b2a;
             margin-bottom: 10px;
         }
 
@@ -182,7 +202,7 @@
         .manuscript-workspace {
             flex: 1;
             height: 100%;
-            background-color: #111;
+            background-color: #000;
             border: 4px solid #d4af37;
             padding: 20px;
             display: flex;
@@ -251,6 +271,10 @@
                 <div class="menu-title">Enter Passcode</div>
                 <div class="form-group">
                     <input type="text" id="verifyToken" class="ff-input" placeholder="000000" maxlength="6">
+                </div>
+                <div class="form-group checkbox-row">
+                    <input type="checkbox" id="keepLoggedIn" checked>
+                    <label for="keepLoggedIn">Keep me logged in</label>
                 </div>
                 <button type="button" id="btnVerify" class="ff-btn">Verify</button>
             </div>
@@ -322,7 +346,7 @@
             document.getElementById('dialogueBox').style.display = 'none';
         });
 
-        // Time Tracking Matrix Engine Loop
+        // Universal Chronometer Thread Matrix
         function initClock() {
             setInterval(() => {
                 const now = new Date();
@@ -330,6 +354,39 @@
                 document.getElementById('globalClock').innerText = utcStr;
             }, 1000);
         }
+
+        // Direct DOM State Mapper
+        function renderGameUI(userData) {
+            document.getElementById('bgLayer').style.display = 'none';
+            document.getElementById('authInterface').style.display = 'none';
+            document.getElementById('gameInterface').style.display = 'flex';
+
+            document.getElementById('hudName').innerText = userData.email.split('@')[0];
+            document.getElementById('hudRole').innerText = userData.role;
+            document.getElementById('hudLevel').innerText = userData.level;
+            document.getElementById('hudAge').innerText = userData.age;
+            document.getElementById('curEnergy').innerText = userData.energy;
+            document.getElementById('maxEnergy').innerText = userData.max_energy;
+            document.getElementById('curWill').innerText = userData.willpower;
+            document.getElementById('maxWill').innerText = userData.max_willpower;
+
+            initClock();
+        }
+
+        // Phase 0: Persistent Local Handshake Verification Check
+        document.addEventListener('DOMContentLoaded', () => {
+            const cachedSession = localStorage.getItem('wc_active_session');
+            if (cachedSession) {
+                try {
+                    const parsedData = JSON.parse(cachedSession);
+                    if (parsedData && parsedData.email) {
+                        renderGameUI(parsedData);
+                    }
+                } catch (e) {
+                    localStorage.removeItem('wc_active_session');
+                }
+            }
+        });
 
         // Phase 1 Request Endpoint
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -364,6 +421,7 @@
         // Phase 2 Validation Verification Endpoint
         document.getElementById('btnVerify').addEventListener('click', async () => {
             const tokenInput = document.getElementById('verifyToken').value.trim();
+            const keepLogged = document.getElementById('keepLoggedIn').checked;
 
             if (!tokenInput) {
                 showMessage("Please enter verification token");
@@ -384,22 +442,12 @@
                     return;
                 }
 
-                // Remove background layer, flip visibility view states
-                document.getElementById('bgLayer').style.display = 'none';
-                document.getElementById('authInterface').style.display = 'none';
-                document.getElementById('gameInterface').style.display = 'flex';
+                // If check box flag evaluates true, record dataset directly into the local device context
+                if (keepLogged && data.user) {
+                    localStorage.setItem('wc_active_session', JSON.stringify(data.user));
+                }
 
-                // Map database record row profiles directly onto scroll workspace properties
-                document.getElementById('hudName').innerText = data.user.email.split('@')[0];
-                document.getElementById('hudRole').innerText = data.user.role;
-                document.getElementById('hudLevel').innerText = data.user.level;
-                document.getElementById('hudAge').innerText = data.user.age;
-                document.getElementById('curEnergy').innerText = data.user.energy;
-                document.getElementById('maxEnergy').innerText = data.user.max_energy;
-                document.getElementById('curWill').innerText = data.user.willpower;
-                document.getElementById('maxWill').innerText = data.user.max_willpower;
-
-                initClock();
+                renderGameUI(data.user);
             } catch (err) {
                 showMessage("Connection failed");
             }
