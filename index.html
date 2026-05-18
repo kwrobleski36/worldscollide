@@ -6,7 +6,6 @@
     <title>Worlds Collide</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Base Reset */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,7 +18,6 @@
             overflow: hidden;
         }
 
-        /* Explicit Background Layer Technique */
         .background-layer {
             position: fixed;
             top: 0;
@@ -27,39 +25,31 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            background-image: url('wclonglogo.jpeg'); /* Restored original landscape artwork */
+            background-image: url('wclonglogo.jpeg');
             background-repeat: no-repeat;
             background-position: center top;
-            
-            /* Stretches the asset completely across the viewport width and height */
             background-size: 100% 100%; 
         }
 
-        /* UI Overlay Container */
         .ui-container {
             position: relative;
             z-index: 10;
             width: 100%;
             height: 100vh;
             display: flex;
-            justify(content): center;
-            display: flex;
             justify-content: center;
             align-items: flex-start;
         }
 
-        /* Final Fantasy VI Style Menu Window */
+        /* Final Fantasy VI Style Menu Window Configuration */
         .ff-login-window {
-            margin-top: 55vh; /* Maintained lowered positioning threshold */
+            margin-top: 55vh;
             width: 420px;
             padding: 24px;
-            
-            /* Deep purple fill with classic tan/gold double-border layout */
             background-color: #1a0926; 
             border: 4px solid #e5c158;
             outline: 2px solid #000;
             box-shadow: inset 0 0 0 2px #3c1e5a, 0 8px 16px rgba(0,0,0,0.8);
-            
             border-radius: 4px;
         }
 
@@ -70,7 +60,7 @@
 
         .ff-label {
             display: block;
-            color: #e5c158; /* Tan label text */
+            color: #e5c158;
             font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -79,8 +69,7 @@
             text-shadow: 1px 1px #000;
         }
 
-        /* Classic Retro Text Input Slot */
-        .ff-input-email {
+        .ff-input-field {
             width: 100%;
             padding: 12px;
             font-family: inherit;
@@ -92,12 +81,11 @@
             letter-spacing: 1px;
         }
 
-        .ff-input-email:focus {
+        .ff-input-field:focus {
             border-color: #e5c158;
         }
 
-        /* FF6 Style Action Button */
-        .ff-btn-login {
+        .ff-btn-action {
             width: 100%;
             padding: 14px;
             font-family: inherit;
@@ -105,20 +93,18 @@
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
-            
-            /* Tan/gold primary surface layout with deep purple typography */
             color: #1a0926;
             background-color: #e5c158;
             border: 2px solid #ffffff;
             box-shadow: 0 4px #000000;
         }
 
-        .ff-btn-login:active {
+        .ff-btn-action:active {
             transform: translateY(2px);
             box-shadow: 0 2px #000000;
         }
 
-        .turnstile-holder {
+        .system-status {
             margin-top: 14px;
             font-size: 0.5rem;
             color: #5c3582;
@@ -133,29 +119,92 @@
 
     <div class="ui-container">
         <div class="ff-login-window">
-            <form onsubmit="handleEmailLogin(event)">
+            
+            <form id="email-stage" onsubmit="requestCode(event)">
                 <div class="ff-form-group">
                     <label class="ff-label">Enter E-Mail Address</label>
-                    <input type="email" class="ff-input-email" autocomplete="email" required placeholder="player@wcgroups.com">
+                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" required placeholder="player@wcgroups.com">
                 </div>
-                
-                <button type="submit" class="ff-btn-login">Confirm</button>
+                <button type="submit" class="ff-btn-action">Confirm</button>
+            </form>
+
+            <form id="code-stage" onsubmit="verifyCode(event)" style="display: none;">
+                <div class="ff-form-group">
+                    <label class="ff-label">Enter Secret Token</label>
+                    <input type="text" id="auth-code" class="ff-input-field" maxlength="6" pattern="\d{6}" required placeholder="000000">
+                </div>
+                <button type="submit" class="ff-btn-action">Verify</button>
             </form>
             
-            <div class="turnstile-holder">[ System Secure ]</div>
+            <div id="status-display" class="system-status">[ System Secure ]</div>
         </div>
     </div>
 
     <script>
-        window.addEventListener('load', () => {
-            console.log("Worlds Collide Interface Engine Re-Initialized.");
-        });
+        let currentSessionEmail = "";
 
-        function handleEmailLogin(event) {
+        async function requestCode(event) {
             event.preventDefault();
-            const emailInput = document.querySelector('.ff-input-email').value;
-            console.log("Processing login token submission for: " + emailInput);
-            alert("Handshake initialized for: " + emailInput);
+            const emailInput = document.getElementById('user-email').value;
+            const statusDisplay = document.getElementById('status-display');
+            
+            statusDisplay.innerText = "CONNECTING...";
+            statusDisplay.style.color = "#ffffff";
+
+            try {
+                const response = await fetch('/functions/api/request-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailInput })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentSessionEmail = emailInput;
+                    // Switches visible form containers via display toggles
+                    document.getElementById('email-stage').style.display = 'none';
+                    document.getElementById('code-stage').style.display = 'block';
+                    
+                    statusDisplay.innerText = "INPUT VERIFICATION CODE";
+                    statusDisplay.style.color = "#e5c158";
+                } else {
+                    statusDisplay.innerText = `ERROR: ${data.error}`;
+                    statusDisplay.style.color = "#ff0000";
+                }
+            } catch (error) {
+                statusDisplay.innerText = "CONNECTION FAILED";
+                statusDisplay.style.color = "#ff0000";
+            }
+        }
+
+        async function verifyCode(event) {
+            event.preventDefault();
+            const codeInput = document.getElementById('auth-code').value;
+            const statusDisplay = document.getElementById('status-display');
+
+            statusDisplay.innerText = "VERIFYING TOKENS...";
+            statusDisplay.style.color = "#ffffff";
+
+            try {
+                const response = await fetch('/functions/api/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentSessionEmail, code: codeInput })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDisplay.innerText = `ACCESS: ${data.user.role}`;
+                    statusDisplay.style.color = "#00ff00";
+                    console.log("Account context loaded:", data.user);
+                } else {
+                    statusDisplay.innerText = `DENIED: ${data.error}`;
+                    statusDisplay.style.color = "#ff0000";
+                }
+            } catch (error) {
+                statusDisplay.innerText = "TRANSACTION ERROR";
+                statusDisplay.style.color = "#ff0000";
+            }
         }
     </script>
 </body>
