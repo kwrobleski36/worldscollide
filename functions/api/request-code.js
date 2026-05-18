@@ -2,48 +2,45 @@ export async function onRequestPost(context) {
     try {
         const { request, env } = context;
         const { email } = await request.json();
-        
-        if (!email || !email.includes('@')) {
-            return new Response(JSON.stringify({ error: "Invalid Email Format" }), {
+
+        // 1. Log incoming tracking vector immediately
+        console.log(`[AUTH SYSTEM] Request intercepted for email node: ${email}`);
+
+        if (!email) {
+            return new Response(JSON.stringify({ error: "Missing Parameters" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
             });
         }
 
         const normalizedEmail = email.toLowerCase().trim();
-        
-        // Generates a 6-digit numeric passcode
+
+        // 2. Generate the 6-digit token matrix unit
         const passcode = Math.floor(100000 + Math.random() * 900000).toString();
-        // Sets expiration threshold to 10 minutes from current transaction time
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-        // Check if the user already exists in the D1 database instance
-        const existingUser = await env.DB.prepare(
-            "SELECT id FROM users WHERE email = ?"
-        ).bind(normalizedEmail).first();
-
-        if (!existingUser) {
-            // New user registration step
-            const newId = crypto.randomUUID();
-            await env.DB.prepare(
-                "INSERT INTO users (id, email, role, otp_code, otp_expires_at) VALUES (?, ?, 'User', ?, ?)"
-            ).bind(newId, normalizedEmail, passcode, expiresAt).run();
-        } else {
-            // Returning user step
-            await env.DB.prepare(
-                "UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?"
-            ).bind(passcode, expiresAt, normalizedEmail).run();
-        }
-
-        // Output to the Cloudflare log stream for testing
+        
+        // CRITICAL DEBUG ENTRY: Forced visibility to log stream pipeline
         console.log(`[AUTH DEBUG] Code for ${normalizedEmail}: ${passcode}`);
 
-        return new Response(JSON.stringify({ success: true, message: "Passcode generated" }), {
+        // Set explicit 10-minute threshold expiration window
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+        // 3. Sync structural profile components into active D1 rows
+        await env.DB.prepare(
+            "INSERT OR IGNORE INTO users (id, email, role) VALUES (?, ?, 'User')"
+        ).bind(crypto.randomUUID(), normalizedEmail).run();
+
+        await env.DB.prepare(
+            "UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?"
+        ).bind(passcode, expiresAt, normalizedEmail).run();
+
+        return new Response(JSON.stringify({ success: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
 
     } catch (err) {
+        // Explicitly catch and log any hidden server block drops to the stream
+        console.error(`[CRITICAL AUTH CRASH] Execution dropped: ${err.message}`);
         return new Response(JSON.stringify({ error: err.message }), {
             status: 500,
             headers: { "Content-Type": "application/json" }
