@@ -16,10 +16,12 @@
             background-color: #000;
             font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
             overflow: hidden;
+            width: 100vw;
+            height: 100vh;
         }
 
-        /* Enforces the retro pixel font layout globally across inputs and text elements */
-        input, select, textarea, button, input::placeholder, div, span {
+        /* Enforces the retro pixel font layout across all structural layout tokens */
+        input, select, textarea, button, input::placeholder, div, span, label {
             font-family: 'Press Start 2P', monospace !important;
         }
 
@@ -36,6 +38,11 @@
             background-size: 100% 100%; 
         }
 
+        /* Programmatic toggle to purge the landing artwork completely post-login */
+        body.logged-in-state .background-layer {
+            display: none !important;
+        }
+
         .ui-container {
             position: relative;
             z-index: 10;
@@ -46,16 +53,20 @@
             align-items: flex-start;
         }
 
-        /* Final Fantasy VI Style Window Blueprint */
+        /* Base Final Fantasy VI Menu Window Blueprints */
         .ff-window {
-            margin-top: 55vh;
-            width: 440px;
-            padding: 24px;
             background-color: #1a0926; 
             border: 4px solid #e5c158;
             outline: 2px solid #000;
             box-shadow: inset 0 0 0 2px #3c1e5a, 0 8px 16px rgba(0,0,0,0.8);
             border-radius: 4px;
+            padding: 20px;
+        }
+
+        /* Landing Page Login Box */
+        .ff-login-window {
+            margin-top: 55vh;
+            width: 440px;
         }
 
         .ff-form-group {
@@ -72,7 +83,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
-            text-align: center; /* Centered label placement */
+            text-align: center;
         }
 
         .ff-input-field {
@@ -94,6 +105,47 @@
             color: #5c3582;
             font-size: 0.65rem;
             text-transform: uppercase;
+        }
+
+        /* Stylized Retro Checkbox Module Container */
+        .ff-checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ff-checkbox-input {
+            display: none;
+        }
+
+        .ff-checkbox-box {
+            width: 16px;
+            height: 16px;
+            background-color: #000000;
+            border: 2px solid #3c1e5a;
+            position: relative;
+        }
+
+        .ff-checkbox-input:checked + .ff-checkbox-box::after {
+            content: "X";
+            position: absolute;
+            color: #e5c158;
+            font-size: 0.6rem;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ff-checkbox-label {
+            color: #ffffff;
+            font-size: 0.5rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
         }
 
         .ff-btn-action {
@@ -123,35 +175,137 @@
             text-transform: uppercase;
         }
 
-        /* Main Page UI Display Parameters (Blank Post-Auth Workspace) */
-        .clock-workspace {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 0;
+        /* POST-AUTH HUD MATRIX (BLANK BACKDROP MULTI-WINDOW LAYOUT) */
+        .game-dashboard {
+            width: 100%;
+            height: 100vh;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
             gap: 16px;
         }
 
-        .hourglass-graphics {
-            color: #e5c158;
-            font-size: 1.5rem;
-            text-shadow: 2px 2px #000;
-            animation: pulse-hourglass 2s infinite ease-in-out;
+        .left-hud-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
         }
 
-        .utc-timer-text {
+        /* Top Left Panel: Character Profile Badge */
+        .panel-profile {
+            height: 180px;
+            flex-shrink: 0;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .player-icon-placeholder {
+            width: 80px;
+            height: 80px;
+            background-color: #000000;
+            border: 2px solid #3c1e5a;
+            box-shadow: inset 0 0 4px rgba(229, 193, 88, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3c1e5a;
+            font-size: 0.5rem;
+            text-align: center;
+            padding: 4px;
+        }
+
+        .profile-strings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             color: #ffffff;
             font-size: 0.55rem;
-            letter-spacing: 1px;
             text-shadow: 1px 1px #000;
-            text-align: center;
-            line-height: 1.5;
+            text-transform: uppercase;
         }
 
-        @keyframes pulse-hourglass {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
+        .profile-string-highlight {
+            color: #e5c158;
+        }
+
+        /* Bottom Left Panel: Long Rectangle Stats Asset Frame */
+        .panel-stats-long {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        .hud-divider {
+            color: #e5c158;
+            font-size: 0.5rem;
+            border-bottom: 1px dashed #3c1e5a;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .hud-data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
+        }
+
+        .hud-data-value {
+            color: #e5c158;
+        }
+
+        /* Main Workspace Window Panels (Middle/Right) */
+        .panel-manuscript-main {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 0; /* Interior managed cleanly by sub-containers */
+            overflow: hidden;
+        }
+
+        /* Full Alignment Header Navigation Element Placement */
+        .manuscript-nav-bar {
+            width: 100%;
+            height: 50px;
+            background-color: #000000;
+            border-bottom: 2px solid #3c1e5a;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 16px;
+        }
+
+        .nav-placeholder-token {
+            color: #5c3582;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
+            cursor: pointer;
+        }
+
+        .nav-placeholder-token:hover {
+            color: #e5c158;
+        }
+
+        .manuscript-blank-body {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3c1e5a;
+            font-size: 0.75rem;
+            text-shadow: 2px 2px #000;
+            letter-spacing: 2px;
         }
 
         /* Custom integrated FF6 Style Notice Dialog Modal */
@@ -206,12 +360,19 @@
 
     <div class="ui-container">
         
-        <div id="auth-window" class="ff-window">
+        <div id="auth-window" class="ff-window ff-login-window">
             <form id="email-stage" onsubmit="requestCode(event)" novalidate>
                 <div class="ff-form-group">
                     <label class="ff-label">Manuscript Login</label>
                     <input type="email" id="user-email" class="ff-input-field" autocomplete="email" placeholder="player@email.com">
                 </div>
+                
+                <label class="ff-checkbox-container">
+                    <input type="checkbox" id="keep-logged-in" class="ff-checkbox-input">
+                    <span class="ff-checkbox-box"></span>
+                    <span class="ff-checkbox-label">Keep me logged in</span>
+                </label>
+
                 <button type="submit" class="ff-btn-action">Confirm</button>
             </form>
 
@@ -225,11 +386,45 @@
             <div id="status-display" class="system-status"></div>
         </div>
 
-        <div id="game-window" class="ff-window" style="display: none;">
-            <div class="clock-workspace">
-                <div class="hourglass-graphics">⏳</div>
-                <div id="utc-clock-display" class="utc-timer-text">SYSTEM CLOCK<br>INITIALIZING...</div>
+        <div id="game-window" class="game-dashboard" style="display: none;">
+            
+            <div class="left-hud-column">
+                <div class="ff-window panel-profile">
+                    <div class="player-icon-placeholder">ICON<br>PC_01</div>
+                    <div class="profile-strings">
+                        <div>NAME: <span id="hud-name" class="profile-string-highlight">PLAYER</span></div>
+                        <div>LVL: <span class="profile-string-highlight">01</span></div>
+                        <div>AGE: <span class="profile-string-highlight">18</span></div>
+                        <div>TITLE: <span class="profile-string-highlight">NOVICE</span></div>
+                    </div>
+                </div>
+
+                <div class="ff-window panel-stats-long">
+                    <div class="hud-divider">Chronometer Engine</div>
+                    <div class="hud-data-row" style="text-align: center; justify-content: center; color: #e5c158; padding: 4px 0;">
+                        <span id="utc-clock-display" style="line-height: 1.4;">0000-00-00 00:00:00 UTC</span>
+                    </div>
+
+                    <div class="hud-divider">Passive Pools</div>
+                    <div class="hud-data-row">ENERGY <span class="hud-data-value">150/150</span></div>
+                    <div class="hud-data-row">WILLPOWER <span class="hud-data-value">100/100</span></div>
+
+                    <div class="hud-divider">Active Profession</div>
+                    <div class="hud-data-row">JOB <span class="hud-data-value">UNASSIGNED</span></div>
+                    <div class="hud-data-row">JOB POINTS <span class="hud-data-value">0000 JP</span></div>
+                </div>
             </div>
+
+            <div class="ff-window panel-manuscript-main">
+                <div class="manuscript-nav-bar">
+                    <div class="nav-placeholder-token">[ PROFILE ]</div>
+                    <div class="nav-placeholder-token">[ PROFESSION ]</div>
+                    <div class="nav-placeholder-token">[ LABORS ]</div>
+                    <div class="nav-placeholder-token">[ ARMY ]</div>
+                </div>
+                <div class="manuscript-blank-body">THE MANUSCRIPT WORKSPACE</div>
+            </div>
+
         </div>
         
     </div>
@@ -254,7 +449,7 @@
             document.getElementById('custom-dialog').style.display = 'none';
         }
 
-        // Ticks real-time global values to provide a deterministic baseline reference frame
+        // Continually maps ticking UTC datelines securely across user fonts
         function runGlobalTimeTracker() {
             const displayNode = document.getElementById('utc-clock-display');
             if (clockIntervalId) clearInterval(clockIntervalId);
@@ -268,7 +463,7 @@
                 const minutes = String(now.getUTCMinutes()).padStart(2, '0');
                 const seconds = String(now.getUTCSeconds()).padStart(2, '0');
                 
-                displayNode.innerHTML = `GLOBAL TIME (UTC)<br>${year}-${month}-${day}<br>${hours}:${minutes}:${seconds}`;
+                displayNode.innerHTML = `⏳ ${year}-${month}-${day}<br>${hours}:${minutes}:${seconds} UTC`;
             }
             
             updateDisplay();
@@ -324,6 +519,7 @@
         async function verifyCode(event) {
             event.preventDefault();
             const codeInput = document.getElementById('auth-code').value.trim();
+            const stayLoggedInToken = document.getElementById('keep-logged-in').checked;
             const statusDisplay = document.getElementById('status-display');
 
             if (!/^\d{6}$/.test(codeInput)) {
@@ -338,17 +534,22 @@
                 const response = await fetch('/api/verify-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentSessionEmail, code: codeInput })
+                    body: JSON.stringify({ email: currentSessionEmail, code: codeInput, remember: stayLoggedInToken })
                 });
                 const data = await response.json();
 
                 if (data.success) {
-                    // Transitions from Landing Screen to clean Main Page UI workspace container
+                    // Triggers the state updates to fully unmount the background artwork
+                    document.body.classList.add('logged-in-state');
+                    
                     document.getElementById('auth-window').style.display = 'none';
-                    document.getElementById('game-window').style.display = 'block';
+                    document.getElementById('game-window').style.display = 'grid';
+                    
+                    // Maps localized account title identifiers onto HUD components
+                    document.getElementById('hud-name').innerText = currentSessionEmail.split('@')[0].toUpperCase();
                     
                     runGlobalTimeTracker();
-                    console.log("Landing sequence resolved. Main page time baseline initialized.");
+                    console.log(`Session initialized. Keep Me Logged In Target State Matrix: ${stayLoggedInToken}`);
                 } else {
                     statusDisplay.innerText = "DENIED";
                     statusDisplay.style.color = "#ff0000";
