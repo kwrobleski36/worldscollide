@@ -18,7 +18,7 @@
             overflow: hidden;
         }
 
-        /* Enforces the retro pixel font layout for user typing metrics and input holders */
+        /* Enforces the retro pixel font layout across all interactive interface utilities */
         input, select, textarea, button, input::placeholder {
             font-family: 'Press Start 2P', monospace !important;
         }
@@ -72,6 +72,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
+            text-align: center; /* Explicitly centered label alignment */
         }
 
         .ff-input-field {
@@ -89,7 +90,7 @@
             border-color: #e5c158;
         }
 
-        /* Style configurations specifically targeting the 8-bit entry placeholders */
+        /* Enforces color and transformation traits directly onto placeholder elements */
         .ff-input-field::placeholder {
             color: #5c3582;
             font-size: 0.65rem;
@@ -125,7 +126,7 @@
 
         /* Custom integrated FF6 Style Notice Dialog Modal */
         .ff-dialog-overlay {
-            display: none; /* Controlled contextually via runtime scripts */
+            display: none; 
             position: fixed;
             top: 0;
             left: 0;
@@ -182,8 +183,8 @@
             
             <form id="email-stage" onsubmit="requestCode(event)" novalidate>
                 <div class="ff-form-group">
-                    <label class="ff-label">Enter E-Mail Address</label>
-                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" placeholder="player@wcgroups.com">
+                    <label class="ff-label">Manuscript Login</label>
+                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" placeholder="player@email.com">
                 </div>
                 <button type="submit" class="ff-btn-action">Confirm</button>
             </form>
@@ -196,7 +197,7 @@
                 <button type="submit" class="ff-btn-action">Verify</button>
             </form>
             
-            <div id="status-display" class="system-status">[ System Secure ]</div>
+            <div id="status-display" class="system-status"></div>
         </div>
     </div>
 
@@ -210,11 +211,14 @@
     <script>
         let currentSessionEmail = "";
 
-        // Triggers the stylized modal popup frame loop mapping
         function triggerFFAlert(msg) {
             document.getElementById('dialog-text').innerText = msg;
             document.getElementById('custom-dialog').style.display = 'flex';
         }
+
+        document.getElementById('custom-dialog').addEventListener('click', function(e) {
+            if (e.target === this) closeDialog();
+        });
 
         function closeDialog() {
             document.getElementById('custom-dialog').style.display = 'none';
@@ -225,9 +229,15 @@
             const emailInput = document.getElementById('user-email').value.trim();
             const statusDisplay = document.getElementById('status-display');
             
-            // Explicit programmatic syntax checker matching step 
+            // Evaluates empty states to serve your exact notification requirements
+            if (!emailInput) {
+                triggerFFAlert("Please enter an e-mail address");
+                return;
+            }
+            
+            // Programmatic schema match validator
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailInput || !emailRegex.test(emailInput)) {
+            if (!emailRegex.test(emailInput)) {
                 triggerFFAlert("Invalid configuration: Please input a structured e-mail address matrix.");
                 return;
             }
@@ -236,7 +246,6 @@
             statusDisplay.style.color = "#ffffff";
 
             try {
-                // Correct live relative path structure mapping parameters
                 const response = await fetch('/api/request-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -252,7 +261,7 @@
                     statusDisplay.innerText = "INPUT VERIFICATION CODE";
                     statusDisplay.style.color = "#e5c158";
                 } else {
-                    statusDisplay.innerText = `ERROR`;
+                    statusDisplay.innerText = "ERROR";
                     statusDisplay.style.color = "#ff0000";
                     triggerFFAlert(`Execution failure: ${data.error}`);
                 }
@@ -269,7 +278,7 @@
             const statusDisplay = document.getElementById('status-display');
 
             if (!/^\d{6}$/.test(codeInput)) {
-                triggerFFAlert("Invalid context: Passcode parameter requires exactly 6 numerical units.");
+                triggerFFAlert("Invalid code context mapping format.");
                 return;
             }
 
@@ -277,7 +286,6 @@
             statusDisplay.style.color = "#ffffff";
 
             try {
-                // Correct relative endpoint mapping parameters 
                 const response = await fetch('/api/verify-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -290,7 +298,7 @@
                     statusDisplay.style.color = "#00ff00";
                     console.log("Account database session verified:", data.user);
                 } else {
-                    statusDisplay.innerText = `DENIED`;
+                    statusDisplay.innerText = "DENIED";
                     statusDisplay.style.color = "#ff0000";
                     triggerFFAlert(`Validation failure: ${data.error}`);
                 }
