@@ -18,8 +18,8 @@
             overflow: hidden;
         }
 
-        /* Enforces the retro pixel font layout across all interactive interface utilities */
-        input, select, textarea, button, input::placeholder {
+        /* Enforces the retro pixel font layout globally across inputs and text elements */
+        input, select, textarea, button, input::placeholder, div, span {
             font-family: 'Press Start 2P', monospace !important;
         }
 
@@ -46,8 +46,8 @@
             align-items: flex-start;
         }
 
-        /* Final Fantasy VI Style Main Menu Box */
-        .ff-login-window {
+        /* Final Fantasy VI Style Window Blueprint */
+        .ff-window {
             margin-top: 55vh;
             width: 440px;
             padding: 24px;
@@ -72,7 +72,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
-            text-align: center; /* Centered layout placement */
+            text-align: center; /* Centered label placement */
         }
 
         .ff-input-field {
@@ -90,7 +90,6 @@
             border-color: #e5c158;
         }
 
-        /* Style configurations specifically targeting the 8-bit entry placeholders */
         .ff-input-field::placeholder {
             color: #5c3582;
             font-size: 0.65rem;
@@ -122,6 +121,37 @@
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
+        }
+
+        /* Main Page UI Display Parameters (Blank Post-Auth Workspace) */
+        .clock-workspace {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            gap: 16px;
+        }
+
+        .hourglass-graphics {
+            color: #e5c158;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px #000;
+            animation: pulse-hourglass 2s infinite ease-in-out;
+        }
+
+        .utc-timer-text {
+            color: #ffffff;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px #000;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        @keyframes pulse-hourglass {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
         }
 
         /* Custom integrated FF6 Style Notice Dialog Modal */
@@ -168,10 +198,6 @@
             border: 2px solid #e5c158;
             text-transform: uppercase;
         }
-
-        .ff-dialog-btn:active {
-            background-color: #1a0926;
-        }
     </style>
 </head>
 <body>
@@ -179,8 +205,8 @@
     <div class="background-layer"></div>
 
     <div class="ui-container">
-        <div class="ff-login-window">
-            
+        
+        <div id="auth-window" class="ff-window">
             <form id="email-stage" onsubmit="requestCode(event)" novalidate>
                 <div class="ff-form-group">
                     <label class="ff-label">Manuscript Login</label>
@@ -196,9 +222,16 @@
                 </div>
                 <button type="submit" class="ff-btn-action">Verify</button>
             </form>
-            
             <div id="status-display" class="system-status"></div>
         </div>
+
+        <div id="game-window" class="ff-window" style="display: none;">
+            <div class="clock-workspace">
+                <div class="hourglass-graphics">⏳</div>
+                <div id="utc-clock-display" class="utc-timer-text">SYSTEM CLOCK<br>INITIALIZING...</div>
+            </div>
+        </div>
+        
     </div>
 
     <div id="custom-dialog" class="ff-dialog-overlay">
@@ -210,6 +243,7 @@
 
     <script>
         let currentSessionEmail = "";
+        let clockIntervalId = null;
 
         function triggerFFAlert(msg) {
             document.getElementById('dialog-text').innerText = msg;
@@ -220,12 +254,32 @@
             document.getElementById('custom-dialog').style.display = 'none';
         }
 
+        // Ticks real-time global values to provide a deterministic baseline reference frame
+        function runGlobalTimeTracker() {
+            const displayNode = document.getElementById('utc-clock-display');
+            if (clockIntervalId) clearInterval(clockIntervalId);
+            
+            function updateDisplay() {
+                const now = new Date();
+                const year = now.getUTCFullYear();
+                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(now.getUTCDate()).padStart(2, '0');
+                const hours = String(now.getUTCHours()).padStart(2, '0');
+                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+                
+                displayNode.innerHTML = `GLOBAL TIME (UTC)<br>${year}-${month}-${day}<br>${hours}:${minutes}:${seconds}`;
+            }
+            
+            updateDisplay();
+            clockIntervalId = setInterval(updateDisplay, 1000);
+        }
+
         async function requestCode(event) {
             event.preventDefault();
             const emailInput = document.getElementById('user-email').value.trim();
             const statusDisplay = document.getElementById('status-display');
             
-            // Catches empty inputs instantly to fulfill structural field requirements
             if (!emailInput) {
                 triggerFFAlert("Please enter an e-mail address");
                 return;
@@ -289,9 +343,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    statusDisplay.innerText = `ACCESS: ${data.user.role}`;
-                    statusDisplay.style.color = "#00ff00";
-                    console.log("Account database session verified:", data.user);
+                    // Transitions from Landing Screen to clean Main Page UI workspace container
+                    document.getElementById('auth-window').style.display = 'none';
+                    document.getElementById('game-window').style.display = 'block';
+                    
+                    runGlobalTimeTracker();
+                    console.log("Landing sequence resolved. Main page time baseline initialized.");
                 } else {
                     statusDisplay.innerText = "DENIED";
                     statusDisplay.style.color = "#ff0000";
