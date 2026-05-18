@@ -10,578 +10,400 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
-        body {
-            background-color: #000;
-            font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+        body, html {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        /* Enforces the retro pixel font layout globally across inputs and text elements */
-        input, select, textarea, button, input::placeholder, div, span, label {
-            font-family: 'Press Start 2P', monospace !important;
+            background-color: #000;
         }
 
         .background-layer {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
+            width: 100%;
+            height: 100%;
             background-image: url('wclonglogo.jpeg');
-            background-repeat: no-repeat;
-            background-position: center top;
-            background-size: 100% 100%; 
+            background-size: 100% 100%;
+            z-index: 1;
         }
 
-        /* Toggles off the landing page artwork entirely when authenticated */
-        body.logged-in-state .background-layer {
-            display: none !important;
-        }
-
-        .ui-container {
+        /* Authentication View Layout */
+        .auth-container {
             position: relative;
             z-index: 10;
             width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        /* Final Fantasy VI Style Window Blueprint */
-        .ff-window {
-            background-color: #1a0926; 
-            border: 4px solid #e5c158;
-            outline: 2px solid #000;
-            box-shadow: inset 0 0 0 2px #3c1e5a, 0 8px 16px rgba(0,0,0,0.8);
-            border-radius: 4px;
-            padding: 20px;
-        }
-
-        /* Landing Page Login Box */
-        .ff-login-window {
-            margin-top: 55vh;
-            width: 440px;
-        }
-
-        .ff-form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .ff-label {
-            display: block;
-            color: #e5c158;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-weight: bold;
-            text-shadow: 1px 1px #000;
-            text-align: center;
-        }
-
-        .ff-input-field {
-            width: 100%;
-            padding: 12px;
-            font-size: 0.75rem;
-            color: #ffffff;
-            background-color: #000000;
-            border: 2px solid #3c1e5a;
-            outline: none;
-            letter-spacing: 1px;
-        }
-
-        .ff-input-field:focus {
-            border-color: #e5c158;
-        }
-
-        .ff-input-field::placeholder {
-            color: #5c3582;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-        }
-
-        /* Stylized Retro Checkbox Module Container */
-        .ff-checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .ff-checkbox-input {
-            display: none;
-        }
-
-        .ff-checkbox-box {
-            width: 16px;
-            height: 16px;
-            background-color: #000000;
-            border: 2px solid #3c1e5a;
-            position: relative;
-        }
-
-        .ff-checkbox-input:checked + .ff-checkbox-box::after {
-            content: "X";
-            position: absolute;
-            color: #e5c158;
-            font-size: 0.6rem;
-            font-weight: bold;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .ff-checkbox-label {
-            color: #ffffff;
-            font-size: 0.5rem;
-            text-transform: uppercase;
-            text-shadow: 1px 1px #000;
-        }
-
-        .ff-btn-action {
-            width: 100%;
-            padding: 14px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            color: #1a0926;
-            background-color: #e5c158;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px #000000;
-        }
-
-        .ff-btn-action:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px #000000;
-        }
-
-        .system-status {
-            margin-top: 14px;
-            font-size: 0.5rem;
-            color: #5c3582;
-            text-align: center;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        /* POST-AUTH HUD GRID ARCHITECTURE (BLANK BACKDROP MULTI-WINDOW LAYOUT) */
-        .game-dashboard {
-            width: 100%;
-            height: 100vh;
-            padding: 16px;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 16px;
-        }
-
-        .left-hud-column {
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            height: 100%;
-        }
-
-        /* Top Left Panel: Character Profile Badge */
-        .panel-profile {
-            height: 180px;
-            flex-shrink: 0;
-            display: flex;
-            gap: 16px;
             align-items: center;
         }
 
-        .player-icon-placeholder {
-            width: 80px;
-            height: 80px;
-            background-color: #000000;
-            border: 2px solid #3c1e5a;
-            box-shadow: inset 0 0 4px rgba(229, 193, 88, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3c1e5a;
-            font-size: 0.5rem;
+        .login-menu {
+            margin-top: 55vh;
+            width: 380px;
+            background-color: #1a0f2e;
+            border: 4px solid #d4af37;
+            padding: 25px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.85);
             text-align: center;
-            padding: 4px;
         }
 
-        .profile-strings {
+        .menu-title {
+            color: #f2e3c6;
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .ff-input {
+            width: 100%;
+            padding: 12px;
+            background-color: #000;
+            border: 2px solid #5d4485;
+            color: #fff;
+            font-size: 10px;
+            outline: none;
+            text-align: center;
+        }
+
+        .ff-input::placeholder {
+            color: #5d4485;
+        }
+
+        .ff-input:focus {
+            border-color: #d4af37;
+        }
+
+        .ff-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #3d2466;
+            border: 2px solid #d4af37;
+            color: #fff;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .ff-btn:hover {
+            background-color: #513085;
+        }
+
+        /* Main Game View Layout */
+        .game-container {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        /* Unified Left Scroll Column */
+        .left-scroll-panel {
+            width: 320px;
+            height: 100%;
+            background-image: url('smallscroll.jpg');
+            background-size: 100% 100%;
+            padding: 45px 30px 45px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #4a2f13;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+        }
+
+        .scroll-section {
+            width: 100%;
+        }
+
+        .scroll-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            border-bottom: 2px dashed #7a5835;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            color: #2b1a08;
+        }
+
+        .player-badge {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            color: #ffffff;
-            font-size: 0.55rem;
-            text-shadow: 1px 1px #000;
-            text-transform: uppercase;
+            font-size: 9px;
+            line-height: 1.5;
         }
 
-        .profile-string-highlight {
-            color: #e5c158;
+        .profile-placeholder {
+            width: 50px;
+            height: 50px;
+            background-color: #61462a;
+            border: 2px solid #2b1a08;
+            margin-bottom: 4px;
         }
 
-        /* Bottom Left Panel: Long Rectangle Resource Asset Frame */
-        .panel-stats-long {
-            flex-grow: 1;
+        .resource-metrics {
+            margin-top: 25px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
+            gap: 10px;
+            font-size: 8px;
+            line-height: 1.4;
         }
 
-        .hud-divider {
-            color: #e5c158;
-            font-size: 0.5rem;
-            border-bottom: 1px dashed #3c1e5a;
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .hud-data-row {
+        .metric-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            color: #ffffff;
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            text-shadow: 1px 1px #000;
         }
 
-        .hud-data-value {
-            color: #e5c158;
+        .clock-display {
+            font-size: 8px;
+            color: #5e1919;
+            text-align: center;
+            padding: 4px;
+            background-color: rgba(255,255,255,0.2);
+            border: 1px solid #7a5835;
+            margin-bottom: 10px;
         }
 
-        /* Main Workspace Window Panels (Middle/Right Alignment Block) */
-        .panel-manuscript-main {
+        /* Right Dashboard Workspace */
+        .manuscript-workspace {
+            flex: 1;
             height: 100%;
+            background-color: #111;
+            border: 4px solid #d4af37;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            padding: 0;
-            overflow: hidden;
         }
 
-        /* Full Alignment Header Navigation Element Placement */
-        .manuscript-nav-bar {
-            width: 100%;
-            height: 50px;
-            background-color: #000000;
-            border-bottom: 2px solid #3c1e5a;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 0 16px;
+        .workspace-header {
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 10px;
+            color: #f2e3c6;
+            font-size: 12px;
         }
 
-        .nav-placeholder-token {
-            color: #5c3582;
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            text-shadow: 1px 1px #000;
-            cursor: pointer;
+        .workspace-content {
+            flex: 1;
+            margin-top: 20px;
+            color: #666;
+            font-size: 10px;
         }
 
-        .nav-placeholder-token:hover {
-            color: #e5c158;
-        }
-
-        .manuscript-blank-body {
-            flex-grow: 1;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3c1e5a;
-            font-size: 0.75rem;
-            text-shadow: 2px 2px #000;
-            letter-spacing: 2px;
-        }
-
-        /* Custom integrated FF6 Style Notice Dialog Modal */
-        .ff-dialog-overlay {
-            display: none; 
+        /* Custom Dialogue Box Overlays */
+        .dialogue-overlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
             z-index: 100;
-            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
             justify-content: center;
             align-items: center;
         }
 
-        .ff-dialog-box {
-            width: 380px;
+        .dialogue-frame {
+            width: 340px;
+            background-color: #1a0f2e;
+            border: 4px solid #d4af37;
             padding: 20px;
-            background-color: #1a0926;
-            border: 4px solid #e5c158;
-            outline: 2px solid #000;
-            box-shadow: inset 0 0 0 2px #3c1e5a;
             text-align: center;
-            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
         }
 
-        .ff-dialog-message {
-            color: #ffffff;
-            font-size: 0.65rem;
+        .dialogue-text {
+            color: #fff;
+            font-size: 9px;
             line-height: 1.6;
             margin-bottom: 20px;
-            text-transform: uppercase;
-            text-shadow: 1px 1px #000;
-        }
-
-        .ff-dialog-btn {
-            padding: 10px 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: #ffffff;
-            background-color: #3c1e5a;
-            border: 2px solid #e5c158;
-            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div class="background-layer"></div>
+    <div class="background-layer" id="bgLayer"></div>
 
-    <div class="ui-container">
-        
-        <div id="auth-window" class="ff-window ff-login-window">
-            <form id="email-stage" onsubmit="requestCode(event)" novalidate>
-                <div class="ff-form-group">
-                    <label class="ff-label">Manuscript Login</label>
-                    <input type="email" id="user-email" class="ff-input-field" autocomplete="email" placeholder="player@email.com">
+    <div class="auth-container" id="authInterface">
+        <form id="loginForm" class="login-menu" novalidate>
+            <div id="emailStep">
+                <div class="menu-title">Manuscript Login</div>
+                <div class="form-group">
+                    <input type="email" id="userEmail" class="ff-input" placeholder="player@email.com">
                 </div>
-                
-                <label class="ff-checkbox-container">
-                    <input type="checkbox" id="keep-logged-in" class="ff-checkbox-input">
-                    <span class="ff-checkbox-box"></span>
-                    <span class="ff-checkbox-label">Keep me logged in</span>
-                </label>
-
-                <button type="submit" class="ff-btn-action">Confirm</button>
-            </form>
-
-            <form id="code-stage" onsubmit="verifyCode(event)" style="display: none;" novalidate>
-                <div class="ff-form-group">
-                    <label class="ff-label">Enter Secret Token</label>
-                    <input type="text" id="auth-code" class="ff-input-field" maxlength="6" placeholder="000000">
-                </div>
-                <button type="submit" class="ff-btn-action">Verify</button>
-            </form>
-            <div id="status-display" class="system-status"></div>
-        </div>
-
-        <div id="game-window" class="game-dashboard" style="display: none;">
-            
-            <div class="left-hud-column">
-                <div class="ff-window panel-profile">
-                    <div class="player-icon-placeholder">ICON<br>PC_01</div>
-                    <div class="profile-strings">
-                        <div>NAME: <span id="hud-name" class="profile-string-highlight">PLAYER</span></div>
-                        <div>LVL: <span id="hud-lvl" class="profile-string-highlight">01</span></div>
-                        <div>AGE: <span id="hud-age" class="profile-string-highlight">1</span></div>
-                        <div>TITLE: <span id="hud-title" class="profile-string-highlight">NOVICE</span></div>
-                    </div>
-                </div>
-
-                <div class="ff-window panel-stats-long">
-                    <div class="hud-divider">Chronometer Engine</div>
-                    <div class="hud-data-row" style="text-align: center; justify-content: center; color: #e5c158; padding: 4px 0;">
-                        <span id="utc-clock-display" style="line-height: 1.4;">0000-00-00 00:00:00 UTC</span>
-                    </div>
-
-                    <div class="hud-divider">Passive Pools</div>
-                    <div class="hud-data-row">ENERGY <span class="hud-data-value" id="hud-energy">150/150</span></div>
-                    <div class="hud-data-row">WILLPOWER <span class="hud-data-value" id="hud-will">100/100</span></div>
-
-                    <div class="hud-divider">Active Profession</div>
-                    <div class="hud-data-row">JOB <span class="hud-data-value">UNASSIGNED</span></div>
-                    <div class="hud-data-row">JOB POINTS <span class="hud-data-value">0000 JP</span></div>
-                </div>
+                <button type="submit" class="ff-btn">Confirm</button>
             </div>
-
-            <div class="ff-window panel-manuscript-main">
-                <div class="manuscript-nav-bar">
-                    <div class="nav-placeholder-token">[ PROFILE ]</div>
-                    <div class="nav-placeholder-token">[ PROFESSION ]</div>
-                    <div class="nav-placeholder-token">[ LABORS ]</div>
-                    <div class="nav-placeholder-token">[ ARMY ]</div>
+            <div id="tokenStep" style="display: none;">
+                <div class="menu-title">Enter Passcode</div>
+                <div class="form-group">
+                    <input type="text" id="verifyToken" class="ff-input" placeholder="000000" maxlength="6">
                 </div>
-                <div class="manuscript-blank-body">THE MANUSCRIPT WORKSPACE</div>
+                <button type="button" id="btnVerify" class="ff-btn">Verify</button>
             </div>
-
-        </div>
-        
+        </form>
     </div>
 
-    <div id="custom-dialog" class="ff-dialog-overlay">
-        <div class="ff-dialog-box">
-            <div id="dialog-text" class="ff-dialog-message">System Alert Message</div>
-            <button class="ff-dialog-btn" onclick="closeDialog()">Dismiss</button>
+    <div class="game-container" id="gameInterface">
+        <div class="left-scroll-panel">
+            <div class="scroll-section">
+                <div class="scroll-title">Character</div>
+                <div class="player-badge">
+                    <div class="profile-placeholder"></div>
+                    <div>NAME: <span id="hudName">...</span></div>
+                    <div>ROLE: <span id="hudRole">...</span></div>
+                    <div>RANK: Lv.<span id="hudLevel">1</span></div>
+                    <div>AGE: <span id="hudAge">1</span> Days</div>
+                </div>
+            </div>
+
+            <div class="scroll-section">
+                <div class="scroll-title">Vitals & Job</div>
+                <div class="clock-display">
+                    ⌛ <span id="globalClock">00:00:00 UTC</span>
+                </div>
+                <div class="resource-metrics">
+                    <div class="metric-row">
+                        <span>ENERGY:</span>
+                        <span><span id="curEnergy">0</span>/<span id="maxEnergy">0</span></span>
+                    </div>
+                    <div class="metric-row">
+                        <span>WILLPOWER:</span>
+                        <span><span id="curWill">0</span>/<span id="maxWill">0</span></span>
+                    </div>
+                    <div class="metric-row">
+                        <span>ACTIVE JOB:</span>
+                        <span id="hudJob">None</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>JOB POINTS:</span>
+                        <span id="hudJP">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="manuscript-workspace">
+            <div class="workspace-header">[ THE MANUSCRIPT INTERFACE ]</div>
+            <div class="workspace-content">System placeholders active...</div>
+        </div>
+    </div>
+
+    <div class="dialogue-overlay" id="dialogueBox">
+        <div class="dialogue-frame">
+            <div class="dialogue-text" id="dialogueMsg">Message</div>
+            <button type="button" class="ff-btn" id="dialogueDismiss">Dismiss</button>
         </div>
     </div>
 
     <script>
-        let currentSessionEmail = "";
-        let clockIntervalId = null;
+        let currentEmail = '';
 
-        function triggerFFAlert(msg) {
-            document.getElementById('dialog-text').innerText = msg;
-            document.getElementById('custom-dialog').style.display = 'flex';
+        // Dialog Handler
+        function showMessage(text) {
+            document.getElementById('dialogueMsg').innerText = text;
+            document.getElementById('dialogueBox').style.display = 'flex';
         }
 
-        function closeDialog() {
-            document.getElementById('custom-dialog').style.display = 'none';
-        }
+        document.getElementById('dialogueDismiss').addEventListener('click', () => {
+            document.getElementById('dialogueBox').style.display = 'none';
+        });
 
-        function runGlobalTimeTracker() {
-            const displayNode = document.getElementById('utc-clock-display');
-            if (clockIntervalId) clearInterval(clockIntervalId);
-            
-            function updateDisplay() {
+        // Time Tracking Matrix Engine Loop
+        function initClock() {
+            setInterval(() => {
                 const now = new Date();
-                const year = now.getUTCFullYear();
-                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-                const day = String(now.getUTCDate()).padStart(2, '0');
-                const hours = String(now.getUTCHours()).padStart(2, '0');
-                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-                
-                displayNode.innerHTML = `⏳ ${year}-${month}-${day}<br>${hours}:${minutes}:${seconds} UTC`;
-            }
-            
-            updateDisplay();
-            clockIntervalId = setInterval(updateDisplay, 1000);
+                const utcStr = now.toISOString().substring(11, 19) + " UTC";
+                document.getElementById('globalClock').innerText = utcStr;
+            }, 1000);
         }
 
-        async function requestCode(event) {
-            event.preventDefault();
-            const emailInput = document.getElementById('user-email').value.trim();
-            const statusDisplay = document.getElementById('status-display');
-            
+        // Phase 1 Request Endpoint
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('userEmail').value.trim();
+
             if (!emailInput) {
-                triggerFFAlert("Please enter an e-mail address");
-                return;
-            }
-            
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailInput)) {
-                triggerFFAlert("Invalid configuration: Please input a structured e-mail address matrix.");
+                showMessage("Please enter an e-mail address");
                 return;
             }
 
-            statusDisplay.innerText = "CONNECTING...";
-            statusDisplay.style.color = "#ffffff";
+            currentEmail = emailInput;
 
             try {
                 const response = await fetch('/api/request-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: emailInput })
+                    body: JSON.stringify({ email: currentEmail })
                 });
-                const data = await response.json();
 
-                if (data.success) {
-                    currentSessionEmail = emailInput;
-                    document.getElementById('email-stage').style.display = 'none';
-                    document.getElementById('code-stage').style.display = 'block';
-                    
-                    statusDisplay.innerText = "INPUT VERIFICATION CODE";
-                    statusDisplay.style.color = "#e5c158";
-                } else {
-                    statusDisplay.innerText = "ERROR";
-                    statusDisplay.style.color = "#ff0000";
-                    triggerFFAlert(`Execution failure: ${data.error}`);
+                if (!response.ok) {
+                    throw new Error("Server communication fault");
                 }
-            } catch (error) {
-                statusDisplay.innerText = "CONNECTION FAILED";
-                statusDisplay.style.color = "#ff0000";
-                triggerFFAlert("Connection error: Unable to link with edge worker transaction routing layers.");
+
+                document.getElementById('emailStep').style.display = 'none';
+                document.getElementById('tokenStep').style.display = 'block';
+            } catch (err) {
+                showMessage("Connection failed");
             }
-        }
+        });
 
-        async function verifyCode(event) {
-            event.preventDefault();
-            const codeInput = document.getElementById('auth-code').value.trim();
-            const stayLoggedInToken = document.getElementById('keep-logged-in').checked;
-            const statusDisplay = document.getElementById('status-display');
+        // Phase 2 Validation Verification Endpoint
+        document.getElementById('btnVerify').addEventListener('click', async () => {
+            const tokenInput = document.getElementById('verifyToken').value.trim();
 
-            if (!/^\d{6}$/.test(codeInput)) {
-                triggerFFAlert("Invalid code context mapping format.");
+            if (!tokenInput) {
+                showMessage("Please enter verification token");
                 return;
             }
-
-            statusDisplay.innerText = "VERIFYING TOKENS...";
-            statusDisplay.style.color = "#ffffff";
 
             try {
                 const response = await fetch('/api/verify-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentSessionEmail, code: codeInput, remember: stayLoggedInToken })
+                    body: JSON.stringify({ email: currentEmail, code: tokenInput })
                 });
+
                 const data = await response.json();
 
-                if (data.success) {
-                    document.body.classList.add('logged-in-state');
-                    
-                    document.getElementById('auth-window').style.display = 'none';
-                    document.getElementById('game-window').style.display = 'grid';
-                    
-                    document.getElementById('hud-name').innerText = currentSessionEmail.split('@')[0].toUpperCase();
-                    
-                    // Maps database values contextually to panel containers
-                    if (data.user.level) {
-                        document.getElementById('hud-lvl').innerText = String(data.user.level).padStart(2, '0');
-                    }
-                    if (data.user.role) {
-                        document.getElementById('hud-title').innerText = data.user.role;
-                    }
-                    if (data.user.energy_current && data.user.energy_max) {
-                        document.getElementById('hud-energy').innerText = `${data.user.energy_current}/${data.user.energy_max}`;
-                    }
-                    if (data.user.will_current && data.user.will_max) {
-                        document.getElementById('hud-will').innerText = `${data.user.will_current}/${data.user.will_max}`;
-                    }
-
-                    // Dynamic Universal Age Metric: Number of full real calendar days passed since registration timestamp, starting at Day 1
-                    if (data.user.created_at) {
-                        const registrationTimestamp = new Date(data.user.created_at).getTime();
-                        const immediateTimestamp = new Date().getTime();
-                        const computedDeltaDays = Math.floor((immediateTimestamp - registrationTimestamp) / (1000 * 60 * 60 * 24));
-                        document.getElementById('hud-age').innerText = String(computedDeltaDays + 1);
-                    } else {
-                        document.getElementById('hud-age').innerText = "1";
-                    }
-                    
-                    runGlobalTimeTracker();
-                    console.log(`Session initialized. Keep Me Logged In Target State Matrix: ${stayLoggedInToken}`);
-                } else {
-                    statusDisplay.innerText = "DENIED";
-                    statusDisplay.style.color = "#ff0000";
-                    triggerFFAlert(`Validation failure: ${data.error}`);
+                if (!response.ok) {
+                    showMessage(data.error || "Verification failed");
+                    return;
                 }
-            } catch (error) {
-                statusDisplay.innerText = "TRANSACTION ERROR";
-                statusDisplay.style.color = "#ff0000";
-                triggerFFAlert("Transaction error: Execution validation tracking timeline timeout.");
+
+                // Remove background layer, flip visibility view states
+                document.getElementById('bgLayer').style.display = 'none';
+                document.getElementById('authInterface').style.display = 'none';
+                document.getElementById('gameInterface').style.display = 'flex';
+
+                // Map database record row profiles directly onto scroll workspace properties
+                document.getElementById('hudName').innerText = data.user.email.split('@')[0];
+                document.getElementById('hudRole').innerText = data.user.role;
+                document.getElementById('hudLevel').innerText = data.user.level;
+                document.getElementById('hudAge').innerText = data.user.age;
+                document.getElementById('curEnergy').innerText = data.user.energy;
+                document.getElementById('maxEnergy').innerText = data.user.max_energy;
+                document.getElementById('curWill').innerText = data.user.willpower;
+                document.getElementById('maxWill').innerText = data.user.max_willpower;
+
+                initClock();
+            } catch (err) {
+                showMessage("Connection failed");
             }
-        }
+        });
     </script>
 </body>
 </html>
