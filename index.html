@@ -72,7 +72,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
-            text-align: center; /* Explicitly centered label alignment */
+            text-align: center; /* Centered layout placement */
         }
 
         .ff-input-field {
@@ -90,7 +90,7 @@
             border-color: #e5c158;
         }
 
-        /* Enforces color and transformation traits directly onto placeholder elements */
+        /* Style configurations specifically targeting the 8-bit entry placeholders */
         .ff-input-field::placeholder {
             color: #5c3582;
             font-size: 0.65rem;
@@ -216,10 +216,6 @@
             document.getElementById('custom-dialog').style.display = 'flex';
         }
 
-        document.getElementById('custom-dialog').addEventListener('click', function(e) {
-            if (e.target === this) closeDialog();
-        });
-
         function closeDialog() {
             document.getElementById('custom-dialog').style.display = 'none';
         }
@@ -229,13 +225,12 @@
             const emailInput = document.getElementById('user-email').value.trim();
             const statusDisplay = document.getElementById('status-display');
             
-            // Evaluates empty states to serve your exact notification requirements
+            // Catches empty inputs instantly to fulfill structural field requirements
             if (!emailInput) {
                 triggerFFAlert("Please enter an e-mail address");
                 return;
             }
             
-            // Programmatic schema match validator
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(emailInput)) {
                 triggerFFAlert("Invalid configuration: Please input a structured e-mail address matrix.");
