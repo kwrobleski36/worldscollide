@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - GM Manual Drag Workspace</title>
+    <title>Worlds Collide - GM Persistent Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        /* Base Setup & Reset */
         body, html {
             margin: 0;
             padding: 0;
@@ -16,9 +17,10 @@
             box-sizing: border-box;
             font-family: 'Press Start 2P', monospace;
             image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
-        /* Layout Structure Focused on Static and Adjustable Pixel Blocks */
+        /* Flexbox Sidebar Layout Engine preventing squishing errors */
         .manuscript-workspace {
             display: flex;
             width: 100vw;
@@ -28,7 +30,6 @@
             gap: 16px;
         }
 
-        /* Sidebar Holds Panels via Flexbox Rather Than Fixed Grid Track Weights */
         .sidebar-container {
             display: flex;
             flex-direction: column;
@@ -41,23 +42,23 @@
             position: relative;
             width: 100%;
             overflow: hidden;
+            /* Typographic style variable overrides managed natively via JS script injections */
             --font-weight: normal;
             --font-color: #ffffff;
             --font-outline: none;
         }
 
-        /* Initial Heights Mapped to Separate Injected Variables */
         #panel-left-top {
             height: var(--top-panel-height, 300px);
             min-height: 120px;
         }
 
         #panel-left-bottom {
-            flex-grow: 1; /* Automatically consumes the remaining vertical track space */
+            flex-grow: 1;
             min-height: 120px;
         }
 
-        /* Sliced Asset Background Layer using your exact black smallscroll.png properties */
+        /* Sliced Asset Background Layer targeting the current black-filled asset format */
         .scroll-background {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -91,7 +92,7 @@
             line-height: 1.6;
         }
 
-        /* Dynamic Drag Handle Widget Overlay */
+        /* Mouse Drag Resize Intermediary Component overlaying layout margins */
         .resize-handle-bar {
             position: absolute;
             bottom: -8px;
@@ -100,9 +101,10 @@
             height: 16px;
             z-index: 999;
             cursor: row-resize;
-            display: none; /* Only reveals when designer mode claim goes hot */
+            display: none;
         }
 
+        /* Active editing states highlighting canvas boxes */
         .manuscript-workspace.edit-active .resize-handle-bar {
             display: block;
         }
@@ -115,6 +117,7 @@
             outline: 2px solid #f5da91;
         }
 
+        /* Master Game Monitor Context Layer */
         .main-viewport {
             flex-grow: 1;
             border: 4px double #4a3621;
@@ -125,7 +128,7 @@
             color: #7a6048;
         }
 
-        /* Control Deck Style Container */
+        /* GM Calibration Widget Styling Context */
         .gm-inspector {
             position: fixed;
             bottom: 20px;
@@ -136,6 +139,14 @@
             border: 2px solid #4a3621;
             z-index: 9999;
             width: 300px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        }
+        .gm-inspector h3 {
+            margin: 0 0 10px 0;
+            font-size: 9px;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 1px;
         }
         .gm-inspector button {
             font-family: 'Press Start 2P', monospace;
@@ -146,7 +157,7 @@
             padding: 8px;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .control-group { margin-bottom: 10px; }
         .gm-inspector label { display: block; font-size: 7px; margin-bottom: 4px; }
@@ -155,9 +166,15 @@
             background: #000;
             color: #f5da91;
             border: 1px solid #4a3621;
+            box-sizing: border-box;
         }
         .checkbox-row { display: flex; align-items: center; gap: 8px; }
         .checkbox-row input { width: auto !important; }
+
+        /* Master visibility override utility class to safely vanish inspector modules */
+        .ui-hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -184,13 +201,14 @@
         </div>
 
         <div class="main-viewport">
-            [VIEWPORT RENDER LAYER]
+            [VIEWPORT RENDER CANVAS - TESTING AREA ACTIVE]
         </div>
     </div>
 
     <div id="gm-inspector-panel" class="gm-inspector">
         <h3>SIDEBAR CONTROL DECK</h3>
         <button id="btn-toggle-edit" onclick="toggleDesignerMode()">TOGGLE DESIGNER</button>
+        <button id="btn-hide-ui" onclick="toggleInspectorVisibility()" style="background: #2e2214;">HIDE CONTROL DECK</button>
         
         <div class="control-group">
             <label>SIDEBAR WIDTH (PX):</label>
@@ -226,7 +244,9 @@
         const topPanel = document.getElementById('panel-left-top');
         const dragHandle = document.getElementById('drag-handle');
 
-        // Manual Mouse Drag Event Listener Logic Loops
+        // Core Initialization Loop reading global settings map on refresh
+        window.addEventListener('DOMContentLoaded', loadSavedConfiguration);
+
         dragHandle.addEventListener('mousedown', function(e) {
             if (!isEditMode) return;
             e.preventDefault();
@@ -237,7 +257,6 @@
 
         function handleVerticalStretch(e) {
             if (!isDragging) return;
-            // Calculate cursor offset delta relative to container boundaries
             const topPanelRect = topPanel.getBoundingClientRect();
             const computedHeight = e.clientY - topPanelRect.top;
             
@@ -252,6 +271,7 @@
             document.removeEventListener('mouseup', stopVerticalStretch);
         }
 
+        // Toggles interactive text fields and highlights layout boundaries
         function toggleDesignerMode() {
             isEditMode = !isEditMode;
             const textNodes = document.querySelectorAll('.scroll-text-entry');
@@ -283,7 +303,42 @@
                 });
                 
                 textNodes.forEach(node => node.contentEditable = "false");
-                saveStateToConsole();
+                saveConfigurationToStorage();
+            }
+        }
+
+        // Entirely hides the control widget overlay to allow pure testing actions
+        function toggleInspectorVisibility() {
+            const panel = document.getElementById('gm-inspector-panel');
+            panel.classList.add('ui-hidden');
+            
+            // Forces lock mode execution if you vanish the tool mid-editing process
+            if (isEditMode) toggleDesignerMode();
+
+            // Renders a discrete tiny restoration node in the viewport screen corner to bring the tools back
+            let restoreBtn = document.getElementById('btn-restore-deck');
+            if (!restoreBtn) {
+                restoreBtn = document.createElement('button');
+                restoreBtn.id = 'btn-restore-deck';
+                restoreBtn.innerText = " + DECK ";
+                restoreBtn.style.position = 'fixed';
+                restoreBtn.style.bottom = '10px';
+                restoreBtn.style.right = '10px';
+                restoreBtn.style.zIndex = '99999';
+                restoreBtn.style.fontFamily = "'Press Start 2P', monospace";
+                restoreBtn.style.fontSize = '8px';
+                restoreBtn.style.background = '#111';
+                restoreBtn.style.color = '#f5da91';
+                restoreBtn.style.border = '1px dashed #4a3621';
+                restoreBtn.style.padding = '6px';
+                restoreBtn.style.cursor = 'pointer';
+                restoreBtn.onclick = function() {
+                    panel.classList.remove('ui-hidden');
+                    restoreBtn.classList.add('ui-hidden');
+                };
+                document.body.appendChild(restoreBtn);
+            } else {
+                restoreBtn.classList.remove('ui-hidden');
             }
         }
 
@@ -342,28 +397,55 @@
             }).join('');
         }
 
-        function saveStateToConsole() {
-            const payload = {
-                target_region: "manual_drag_black_variant",
-                computed_dimensions: {
-                    sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
-                    top_panel_height: window.getComputedStyle(topPanel).height
-                },
-                panels: []
+        // Writes structure layouts down into browser storage blocks
+        function saveConfigurationToStorage() {
+            const layoutState = {
+                sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
+                top_panel_height: window.getComputedStyle(topPanel).height,
+                panels: {}
             };
+
             document.querySelectorAll('.scroll-panel-container').forEach(panel => {
                 const textEntry = panel.querySelector('.scroll-text-entry');
                 const wrapper = panel.querySelector('.scroll-text-wrapper');
-                payload.panels.push({
-                    dom_id: panel.id,
-                    content: textEntry.innerHTML,
-                    styles: {
-                        y_offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15%",
-                        color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff"
-                    }
-                });
+                layoutState.panels[panel.id] = {
+                    text_html: textEntry.innerHTML,
+                    offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15%",
+                    color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff",
+                    weight: window.getComputedStyle(panel).getPropertyValue('--font-weight') || "normal",
+                    outline: window.getComputedStyle(panel).getPropertyValue('--font-outline') || "none"
+                };
             });
-            console.log("State Locked System Payload:", JSON.stringify(payload, null, 2));
+
+            localStorage.setItem('wc_gm_sidebar_state', JSON.stringify(layoutState));
+            console.log("Global Blueprint Persistent-Locked:", layoutState);
+        }
+
+        // Reads browser storage mapping parameters back to DOM slots on load hooks
+        function loadSavedConfiguration() {
+            const rawData = localStorage.getItem('wc_gm_sidebar_state');
+            if (!rawData) return;
+
+            try {
+                const config = JSON.parse(rawData);
+                workspace.style.setProperty('--sidebar-width', config.sidebar_width);
+                workspace.style.setProperty('--top-panel-height', config.top_panel_height);
+                document.getElementById('slide-width').value = parseInt(config.sidebar_width);
+
+                Object.keys(config.panels).forEach(id => {
+                    const panel = document.getElementById(id);
+                    if (!panel) return;
+                    
+                    const item = config.panels[id];
+                    panel.querySelector('.scroll-text-entry').innerHTML = item.text_html;
+                    panel.querySelector('.scroll-text-wrapper').style.setProperty('--text-y-offset', item.offset);
+                    panel.style.setProperty('--font-color', item.color);
+                    panel.style.setProperty('--font-weight', item.weight);
+                    panel.style.setProperty('--font-outline', item.outline);
+                });
+            } catch (e) {
+                console.error("Configuration tracking load delta failed:", e);
+            }
         }
     </script>
 </body>
