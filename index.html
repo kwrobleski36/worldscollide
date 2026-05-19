@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - GM Grid Workspace</title>
+    <title>Worlds Collide - GM Sidebar Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* Base Setup & Reset */
@@ -15,18 +15,17 @@
             background-color: #000;
             overflow: hidden;
             box-sizing: border-box;
-            /* Direct font family tracking matching index.html standards */
             font-family: 'Press Start 2P', monospace;
             image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
-        /* Hard Grid Workspace Layout - Variable Track Backbones managed by JS */
+        /* Hard Grid Workspace Layout - Variable Track Backbones focused on the Sidebar */
         .manuscript-workspace {
             display: grid;
             grid-template-columns: var(--sidebar-width, 320px) 1fr;
-            grid-template-rows: var(--header-height, 80px) var(--top-panel-height, 1fr) 1fr;
+            grid-template-rows: var(--top-panel-height, 1fr) 1fr;
             grid-template-areas: 
-                "top-scroll top-scroll"
                 "left-top main-viewport"
                 "left-bottom main-viewport";
             gap: 16px;
@@ -42,6 +41,10 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            /* Individual style hooks via fallback defaults */
+            --font-weight: normal;
+            --font-color: #4a3621;
+            --font-outline: none;
         }
 
         /* Sliced Asset Background Layer using smallscroll.png */
@@ -50,24 +53,16 @@
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             z-index: 1;
-        }
-
-        .vertical-scroll {
             border-image: url('smallscroll.png') 60 20 60 20 fill;
             border-width: 60px 20px 60px 20px;
-        }
-
-        .horizontal-scroll {
-            border-image: url('smallscroll.png') 20 60 20 60 fill;
-            border-width: 20px 60px 20px 60px;
         }
 
         /* Text Wrapping Matrix mapped to safe parchment zones */
         .scroll-text-wrapper {
             position: absolute;
             top: var(--text-y-offset, 12%);
-            left: 10%;
-            right: 10%;
+            left: 12%;
+            right: 12%;
             bottom: 12%;
             z-index: 2;
             display: flex;
@@ -75,10 +70,12 @@
             overflow: hidden;
         }
 
-        /* Enforcing the exact 'Press Start 2P' retro aesthetic */
+        /* Enforcing the exact 'Press Start 2P' retro aesthetic with dynamic decoration loops */
         .scroll-text-entry {
             font-family: 'Press Start 2P', monospace;
-            color: #4a3621;
+            color: var(--font-color);
+            font-weight: var(--font-weight);
+            text-shadow: var(--font-outline);
             font-size: clamp(8px, 1.8cqi, 12px);
             white-space: pre-wrap;
             word-break: break-word;
@@ -90,6 +87,11 @@
         .manuscript-workspace.edit-active .scroll-panel-container {
             outline: 2px dashed #f5da91;
             cursor: pointer;
+        }
+
+        .manuscript-workspace.edit-active .scroll-panel-container.selected-target {
+            outline: 2px solid #8c2d19;
+            box-shadow: 0 0 8px rgba(140, 45, 25, 0.6);
         }
 
         .scroll-text-entry[contenteditable="true"] {
@@ -118,7 +120,7 @@
             border: 2px solid #f5da91;
             z-index: 9999;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            width: 280px;
+            width: 300px;
         }
         .gm-inspector h3 {
             margin: 0 0 10px 0;
@@ -139,15 +141,34 @@
             margin-bottom: 12px;
         }
         .gm-inspector .control-group {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .gm-inspector label {
             display: block;
             font-size: 7px;
             margin-bottom: 4px;
         }
-        .gm-inspector input[type="range"] {
+        .gm-inspector input[type="range"], .gm-inspector select, .gm-inspector input[type="color"] {
             width: 100%;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            background: #1a120b;
+            color: #f5da91;
+            border: 1px solid #4a3621;
+            box-sizing: border-box;
+        }
+        .gm-inspector input[type="color"] {
+            height: 24px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-row input {
+            width: auto !important;
         }
     </style>
 </head>
@@ -155,22 +176,15 @@
 
     <div id="manuscript-workspace" class="manuscript-workspace">
         
-        <div id="panel-top-scroll" class="scroll-panel-container" style="grid-area: top-scroll;">
-            <div class="scroll-background horizontal-scroll"></div>
-            <div class="scroll-text-wrapper">
-                <div id="text-top-scroll" class="scroll-text-entry" contenteditable="false">WORLDS COLLIDE GM SETUP</div>
-            </div>
-        </div>
-
-        <div id="panel-left-top" class="scroll-panel-container" style="grid-area: left-top;">
-            <div class="scroll-background vertical-scroll"></div>
+        <div id="panel-left-top" class="scroll-panel-container" style="grid-area: left-top;" onclick="selectPanel(this, event)">
+            <div class="scroll-background"></div>
             <div class="scroll-text-wrapper">
                 <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: HERO&#10;LVL: 01&#10;JOB: SQUIRE</div>
             </div>
         </div>
 
-        <div id="panel-left-bottom" class="scroll-panel-container" style="grid-area: left-bottom;">
-            <div class="scroll-background vertical-scroll"></div>
+        <div id="panel-left-bottom" class="scroll-panel-container" style="grid-area: left-bottom;" onclick="selectPanel(this, event)">
+            <div class="scroll-background"></div>
             <div class="scroll-text-wrapper">
                 <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:&#10;CLEAR THE FLOOR</div>
             </div>
@@ -182,7 +196,7 @@
     </div>
 
     <div id="gm-inspector-panel" class="gm-inspector">
-        <h3>GRID CONTROL DECK</h3>
+        <h3>SIDEBAR RENDER DECK</h3>
         <button id="btn-toggle-edit" onclick="toggleEditMode()">TOGGLE DESIGNER</button>
         
         <div class="control-group">
@@ -190,30 +204,42 @@
             <input type="range" id="slide-width" min="200" max="500" value="320" oninput="resizeGridTrack('width', this.value)" disabled>
         </div>
         <div class="control-group">
-            <label>TOP PANEL HEIGHT (PX):</label>
-            <input type="range" id="slide-height" min="50" max="150" value="80" oninput="resizeGridTrack('height', this.value)" disabled>
-        </div>
-        <div class="control-group">
             <label>SIDEBAR SPLIT STEP (%):</label>
             <input type="range" id="slide-split" min="20" max="80" value="50" oninput="resizeGridTrack('split', this.value)" disabled>
         </div>
+
+        <hr style="border-color: #4a3621; margin: 12px 0;">
+        <h3 style="font-size: 8px;">FONT STYLE EDITOR</h3>
+        
         <div class="control-group">
             <label>TEXT LINE OFFSET (%):</label>
-            <input type="range" id="text-offset-slider" min="5" max="65" value="12" oninput="adjustTextPlacement(this.value)" disabled>
+            <input type="range" id="text-offset-slider" min="5" max="65" value="12" oninput="updateSelectedStyle('offset', this.value)" disabled>
+        </div>
+        <div class="control-group">
+            <label>FONT COLOR:</label>
+            <input type="color" id="font-color-picker" value="#4a3621" oninput="updateSelectedStyle('color', this.value)" disabled>
+        </div>
+        <div class="control-group checkbox-row">
+            <input type="checkbox" id="font-bold-check" onchange="updateSelectedStyle('bold', this.checked)" disabled>
+            <label for="font-bold-check" style="margin: 0;">BOLDFACE TYPE</label>
+        </div>
+        <div class="control-group checkbox-row">
+            <input type="checkbox" id="font-outline-check" onchange="updateSelectedStyle('outline', this.checked)" disabled>
+            <label for="font-outline-check" style="margin: 0;">WHITE OUTLINE</label>
         </div>
     </div>
 
     <script>
         let isEditMode = false;
-        let activeTargetTextNode = null;
+        let activeTargetPanel = null;
         const workspace = document.getElementById('manuscript-workspace');
 
-        // Activates configuration flags and interfaces
+        // Activates configuration flags and parameters across layout containers
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const textNodes = document.querySelectorAll('.scroll-text-entry');
             const toggleButton = document.getElementById('btn-toggle-edit');
-            const controls = ['slide-width', 'slide-height', 'slide-split', 'text-offset-slider'];
+            const layoutControls = ['slide-width', 'slide-split'];
             
             if (isEditMode) {
                 workspace.classList.add('edit-active');
@@ -221,80 +247,136 @@
                 toggleButton.style.background = "#8c2d19";
                 toggleButton.style.color = "#ffffff";
                 
-                controls.forEach(id => document.getElementById(id).removeAttribute('disabled'));
-                
-                textNodes.forEach(node => {
-                    node.contentEditable = "true";
-                    node.onclick = (e) => {
-                        activeTargetTextNode = e.target;
-                        const wrapper = e.target.parentElement;
-                        const currentTop = window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12%";
-                        document.getElementById('text-offset-slider').value = parseInt(currentTop);
-                    };
-                });
+                layoutControls.forEach(id => document.getElementById(id).removeAttribute('disabled'));
+                textNodes.forEach(node => node.contentEditable = "true");
             } else {
                 workspace.classList.remove('edit-active');
                 toggleButton.innerText = "TOGGLE DESIGNER";
                 toggleButton.style.background = "#f5da91";
                 toggleButton.style.color = "#2e2214";
                 
-                controls.forEach(id => document.getElementById(id).setAttribute('disabled', 'true'));
+                // Drop active selections and clear input states
+                if (activeTargetPanel) {
+                    activeTargetPanel.classList.remove('selected-target');
+                    activeTargetPanel = null;
+                }
                 
-                textNodes.forEach(node => {
-                    node.contentEditable = "false";
-                    node.onclick = null;
+                const allControls = [...layoutControls, 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
+                allControls.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.setAttribute('disabled', 'true');
+                    if (el.type === 'checkbox') el.checked = false;
                 });
-
-                activeTargetTextNode = null;
+                
+                textNodes.forEach(node => node.contentEditable = "false");
                 serializeWorkspaceState();
             }
         }
 
-        // Recomputes track dimensions globally while maintaining hard containment limits
+        // Handles node focus targeting inside edit state boundaries
+        function selectPanel(element, event) {
+            if (!isEditMode) return;
+            
+            // Stop event bubbling to prevent clicking nested items from cross-firing
+            event.stopPropagation();
+
+            if (activeTargetPanel) {
+                activeTargetPanel.classList.remove('selected-target');
+            }
+
+            activeTargetPanel = element;
+            activeTargetPanel.classList.add('selected-target');
+
+            // Unlock typography engine fields in tool inspector
+            const fontControls = ['text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
+            fontControls.forEach(id => document.getElementById(id).removeAttribute('disabled'));
+
+            // Pull runtime computations and synchronize sliders to match the selected zone
+            const wrapper = element.querySelector('.scroll-text-wrapper');
+            const currentOffset = parseInt(window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12");
+            document.getElementById('text-offset-slider').value = currentOffset;
+
+            const currentColor = window.getComputedStyle(element).getPropertyValue('--font-color').trim() || "#4a3621";
+            // Standardize RGB responses back into hexadecimal strings for color element compliance
+            document.getElementById('font-color-picker').value = rgbToHex(currentColor);
+
+            const currentWeight = window.getComputedStyle(element).getPropertyValue('--font-weight').trim();
+            document.getElementById('font-bold-check').checked = (currentWeight === 'bold');
+
+            const currentOutline = window.getComputedStyle(element).getPropertyValue('--font-outline').trim();
+            document.getElementById('font-outline-check').checked = (currentOutline !== 'none' && currentOutline !== '');
+        }
+
+        // Modifies custom context styling parameters inside a targeted panel division
+        function updateSelectedStyle(property, value) {
+            if (!activeTargetPanel || !isEditMode) return;
+
+            const wrapper = activeTargetPanel.querySelector('.scroll-text-wrapper');
+
+            if (property === 'offset') {
+                wrapper.style.setProperty('--text-y-offset', `${value}%`);
+            } else if (property === 'color') {
+                activeTargetPanel.style.setProperty('--font-color', value);
+            } else if (property === 'bold') {
+                activeTargetPanel.style.setProperty('--font-weight', value ? 'bold' : 'normal');
+            } else if (property === 'outline') {
+                // Multi-directional sharp pixel silhouette drop-shadow strings mapping crisp retro rendering rules
+                const outlineString = value ? 
+                    '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff' : 'none';
+                activeTargetPanel.style.setProperty('--font-outline', outlineString);
+            }
+        }
+
+        // Recomputes track structures while preserving explicit containment guidelines
         function resizeGridTrack(type, value) {
             if (!isEditMode) return;
             
             if (type === 'width') {
                 workspace.style.setProperty('--sidebar-width', `${value}px`);
-            } else if (type === 'height') {
-                workspace.style.setProperty('--header-height', `${value}px`);
             } else if (type === 'split') {
-                // Adjust split ratio between left-top and left-bottom panels inside the layout rows
                 workspace.style.setProperty('--top-panel-height', `${value}fr`);
             }
         }
 
-        // Alters line position offsets within parchment frames
-        function adjustTextPlacement(value) {
-            if (activeTargetTextNode && isEditMode) {
-                activeTargetTextNode.parentElement.style.setProperty('--text-y-offset', `${value}%`);
-            }
+        // Formats computed color arrays back into hex configurations
+        function rgbToHex(rgb) {
+            if (rgb.startsWith('#')) return rgb;
+            const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (!match) return "#4a3621";
+            return "#" + [match[1], match[2], match[3]].map(x => {
+                const hex = parseInt(x).toString(16);
+                return hex.length === 1 ? "0" + hex : hex;
+            }).join('');
         }
 
-        // Gathers active panel track states for D1 delivery
+        // Gathers layout blueprints for direct Cloudflare D1 insertion loops
         function serializeWorkspaceState() {
             const statePayload = {
-                layout_blueprint: "locked_snes_grid",
+                active_sector: "left_sidebar_only",
                 dimensions: {
                     sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
-                    header_height: window.getComputedStyle(workspace).getPropertyValue('--header-height') || "80px",
                     top_panel_weight: window.getComputedStyle(workspace).getPropertyValue('--top-panel-height') || "1fr"
                 },
-                node_manifest: []
+                panel_manifest: []
             };
 
             document.querySelectorAll('.scroll-panel-container').forEach(panel => {
                 const textEntry = panel.querySelector('.scroll-text-entry');
                 const wrapper = panel.querySelector('.scroll-text-wrapper');
                 
-                statePayload.node_manifest.push({
+                statePayload.panel_manifest.push({
                     dom_id: panel.id,
-                    text_value: textEntry.innerHTML,
-                    text_y_offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12%"
+                    inner_text: textEntry.innerHTML,
+                    style_attributes: {
+                        text_y_offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12%",
+                        font_color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#4a3621",
+                        font_weight: window.getComputedStyle(panel).getPropertyValue('--font-weight') || "normal",
+                        font_outline: window.getComputedStyle(panel).getPropertyValue('--font-outline') || "none"
+                    }
                 });
             });
 
-            console.log("Grid State JSON compiled for sync:", JSON.stringify(statePayload, null, 2));
+            console.log("Sidebar Configuration compiled for delivery:", JSON.stringify(statePayload, null, 2));
         }
     </script>
 </body>
