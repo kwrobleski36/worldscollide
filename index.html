@@ -123,15 +123,120 @@
             border: 4px double #4a3621;
             background: rgba(20, 20, 20, 0.8);
             display: flex;
+            flex-direction: column;
+            position: relative;
+            color: #7a6048;
+            box-sizing: border-box;
+        }
+
+        /* Real-Time UTC Clock Component Container */
+        .clock-container {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f5da91;
+            font-size: 10px;
+            letter-spacing: 1px;
+            z-index: 10;
+            line-height: 10px;
+        }
+
+        /* Scaled to match the exact size and alignment of the 10px typography */
+        .clock-hourglass-asset {
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            vertical-align: middle;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Centered Testing Matrix Text */
+        .viewport-test-text {
+            flex-grow: 1;
+            display: flex;
             align-items: center;
             justify-content: center;
-            color: #7a6048;
+            width: 100%;
+        }
+
+        /* DOS Terminal Console Base Framework Styles */
+        .terminal-console-panel {
+            width: 100%;
+            height: 180px;
+            background: #000000;
+            border-top: 4px double #4a3621;
+            padding: 12px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            font-family: 'Press Start 2P', monospace;
+            z-index: 5;
+        }
+
+        .terminal-log-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            color: #aaaaaa;
+            font-size: 9px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .terminal-log-line {
+            margin-bottom: 4px;
+        }
+
+        .terminal-log-line.system-prompt {
+            color: #f5da91;
+        }
+
+        .terminal-log-line.error-response {
+            color: #8c2d19;
+        }
+
+        .terminal-log-line.success-response {
+            color: #4c8c19;
+        }
+
+        .terminal-input-row {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 10px;
+        }
+
+        .terminal-cursor {
+            color: #f5da91;
+            margin-right: 8px;
+            user-select: none;
+        }
+
+        .terminal-input-field {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            padding: 0;
+            margin: 0;
         }
 
         /* GM Calibration Widget Styling Context */
         .gm-inspector {
             position: fixed;
-            bottom: 20px;
+            bottom: 210px;
             right: 20px;
             background: #111;
             color: #f5da91;
@@ -185,7 +290,7 @@
             <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: HERO&#10;LVL: 01&#10;JOB: SQUIRE</div>
+                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: %player_name (%player_accountnumber)\nLVL: %player_level\nAGE: %player_age\nJOB: %player_job</div>
                 </div>
                 <div class="resize-handle-bar" id="drag-handle"></div>
             </div>
@@ -195,13 +300,29 @@
             <div id="panel-left-bottom" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:&#10;CLEAR THE FLOOR</div>
+                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:\nINITIALIZE IDENTITY</div>
                 </div>
             </div>
         </div>
 
         <div class="main-viewport">
-            [VIEWPORT RENDER CANVAS - TESTING AREA ACTIVE]
+            <div class="clock-container">
+                <img src="hourglass.jpg" class="clock-hourglass-asset" alt="">
+                <span id="utc-clock-display">00:00:00 UTC</span>
+            </div>
+
+            <div class="viewport-test-text">
+                [VIEWPORT RENDER CANVAS - TESTING AREA ACTIVE]
+            </div>
+
+            <div class="terminal-console-panel">
+                <div class="terminal-log-area" id="terminal-log-output">
+                    </div>
+                <div class="terminal-input-row">
+                    <span class="terminal-cursor">&gt;</span>
+                    <input type="text" id="terminal-command-line" class="terminal-input-field" autocomplete="off" autofocus>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -237,15 +358,132 @@
     </div>
 
     <script>
+        // System Character Configuration Registry & State Flags
+        let playerState = {
+            name: "???",
+            accountnumber: "000000",
+            level: 1, 
+            age: 1, 
+            job: "None" 
+        };
+
+        let initialCreationTimestamp = null;
+
         let isEditMode = false;
         let activeTargetPanel = null;
         let isDragging = false;
+        
         const workspace = document.getElementById('manuscript-workspace');
         const topPanel = document.getElementById('panel-left-top');
         const dragHandle = document.getElementById('drag-handle');
+        const terminalLog = document.getElementById('terminal-log-output');
+        const terminalInput = document.getElementById('terminal-command-line');
 
-        // Core Initialization Loop reading global settings map on refresh
-        window.addEventListener('DOMContentLoaded', loadSavedConfiguration);
+        const takenNamesDatabase = ["HERO", "WIZARD", "GAMEMASTER", "SQUIRE"];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeChronologyTracker();
+            loadSavedConfiguration();
+            renderStatusPanelDisplay();
+            initializeFirstTimeLoginSequence();
+        });
+
+        // Real-Time UTC Chronology Engine & Day Rollover Calculation Loop
+        function initializeChronologyTracker() {
+            initialCreationTimestamp = Date.now();
+            
+            function updateClock() {
+                const now = new Date();
+                const hours = String(now.getUTCHours()).padStart(2, '0');
+                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+                document.getElementById('utc-clock-display').innerText = `${hours}:${minutes}:${seconds} UTC`;
+
+                // Evaluates total elapsed days matching Universal Coordinated Time (UTC)
+                const elapsedDays = Math.floor((Date.now() - initialCreationTimestamp) / 86400000);
+                const currentAgeCalculation = 1 + elapsedDays;
+
+                if (currentAgeCalculation !== playerState.age) {
+                    playerState.age = currentAgeCalculation;
+                    renderStatusPanelDisplay();
+                }
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
+        function renderStatusPanelDisplay() {
+            const targetNode = document.getElementById('text-left-top');
+            if (!targetNode) return;
+
+            let layoutTemplate = "NAME: %player_name (%player_accountnumber)\nLVL: %player_level\nAGE: %player_age\nJOB: %player_job";
+            
+            let currentView = layoutTemplate
+                .replace("%player_name", playerState.name)
+                .replace("%player_accountnumber", playerState.accountnumber)
+                .replace("%player_level", playerState.level)
+                .replace("%player_age", playerState.age)
+                .replace("%player_job", playerState.job);
+
+            targetNode.innerText = currentView;
+        }
+
+        function initializeFirstTimeLoginSequence() {
+            printTerminalLine('Please select a name ...', 'system-prompt'); 
+            
+            terminalInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    const submissionValue = terminalInput.value.trim();
+                    terminalInput.value = '';
+
+                    if (submissionValue === '') {
+                        return;
+                    }
+
+                    processNameSelectionSubmission(submissionValue);
+                }
+            });
+            
+            document.querySelector('.terminal-console-panel').addEventListener('click', () => {
+                terminalInput.focus();
+            });
+        }
+
+        function printTerminalLine(text, styleClass = '') {
+            const lineNode = document.createElement('div');
+            lineNode.className = `terminal-log-line ${styleClass}`;
+            lineNode.innerText = text;
+            terminalLog.appendChild(lineNode);
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        }
+
+        function processNameSelectionSubmission(nameInput) {
+            printTerminalLine(`> ${nameInput}`);
+            const sanitizedUpperName = nameInput.toUpperCase();
+
+            const alphaNumericRegex = /^[A-Z0-9]+$/i;
+            if (!alphaNumericRegex.test(sanitizedUpperName)) {
+                printTerminalLine('Error: Invalid characters. Monospaced Alphanumeric Only.', 'error-response');
+                return;
+            }
+
+            if (takenNamesDatabase.includes(sanitizedUpperName)) {
+                printTerminalLine('Error: Name is already taken. Please select a new name ...', 'error-response');
+                return;
+            }
+
+            playerState.name = sanitizedUpperName;
+            playerState.accountnumber = String(Math.floor(100000 + Math.random() * 900000));
+            playerState.job = "Squire"; 
+
+            printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
+            renderStatusPanelDisplay();
+            
+            terminalInput.setAttribute('disabled', 'true');
+            terminalInput.blur();
+            document.getElementById('text-left-bottom').innerText = "QUEST:\nCLEAR THE FLOOR";
+            saveConfigurationToStorage();
+        }
 
         dragHandle.addEventListener('mousedown', function(e) {
             if (!isEditMode) return;
@@ -271,7 +509,8 @@
             document.removeEventListener('mouseup', stopVerticalStretch);
         }
 
-        // Toggles interactive text fields and highlights layout boundaries
+        styleControls = ['slide-width', 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
+
         function toggleDesignerMode() {
             isEditMode = !isEditMode;
             const textNodes = document.querySelectorAll('.scroll-text-entry');
@@ -283,7 +522,9 @@
                 toggleButton.style.background = "#8c2d19";
                 toggleButton.style.color = "#ffffff";
                 document.getElementById('slide-width').removeAttribute('disabled');
-                textNodes.forEach(node => node.contentEditable = "true");
+                textNodes.forEach(node => {
+                    if(node.id !== 'text-left-top') node.contentEditable = "true";
+                });
             } else {
                 workspace.classList.remove('edit-active');
                 toggleButton.innerText = "TOGGLE DESIGNER";
@@ -307,15 +548,12 @@
             }
         }
 
-        // Entirely hides the control widget overlay to allow pure testing actions
         function toggleInspectorVisibility() {
             const panel = document.getElementById('gm-inspector-panel');
             panel.classList.add('ui-hidden');
             
-            // Forces lock mode execution if you vanish the tool mid-editing process
             if (isEditMode) toggleDesignerMode();
 
-            // Renders a discrete tiny restoration node in the viewport screen corner to bring the tools back
             let restoreBtn = document.getElementById('btn-restore-deck');
             if (!restoreBtn) {
                 restoreBtn = document.createElement('button');
@@ -397,11 +635,11 @@
             }).join('');
         }
 
-        // Writes structure layouts down into browser storage blocks
         function saveConfigurationToStorage() {
             const layoutState = {
                 sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
                 top_panel_height: window.getComputedStyle(topPanel).height,
+                player: playerState,
                 panels: {}
             };
 
@@ -418,10 +656,8 @@
             });
 
             localStorage.setItem('wc_gm_sidebar_state', JSON.stringify(layoutState));
-            console.log("Global Blueprint Persistent-Locked:", layoutState);
         }
 
-        // Reads browser storage mapping parameters back to DOM slots on load hooks
         function loadSavedConfiguration() {
             const rawData = localStorage.getItem('wc_gm_sidebar_state');
             if (!rawData) return;
@@ -431,13 +667,22 @@
                 workspace.style.setProperty('--sidebar-width', config.sidebar_width);
                 workspace.style.setProperty('--top-panel-height', config.top_panel_height);
                 document.getElementById('slide-width').value = parseInt(config.sidebar_width);
+                
+                if (config.player) {
+                    playerState = config.player;
+                    if(playerState.name !== "???") {
+                        document.getElementById('terminal-command-line').setAttribute('disabled', 'true');
+                    }
+                }
 
                 Object.keys(config.panels).forEach(id => {
                     const panel = document.getElementById(id);
                     if (!panel) return;
                     
                     const item = config.panels[id];
-                    panel.querySelector('.scroll-text-entry').innerHTML = item.text_html;
+                    if(id !== 'panel-left-top') {
+                        panel.querySelector('.scroll-text-entry').innerHTML = item.text_html;
+                    }
                     panel.querySelector('.scroll-text-wrapper').style.setProperty('--text-y-offset', item.offset);
                     panel.style.setProperty('--font-color', item.color);
                     panel.style.setProperty('--font-weight', item.weight);
