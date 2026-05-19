@@ -472,7 +472,8 @@
             }
 
             playerState.name = sanitizedUpperName;
-            playerState.accountnumber = String(Math.floor(100000 + Math.random() * 900000));
+            // Preserves indices 1 through 99; local mock increments starting at absolute index 100
+            playerState.accountnumber = String(Math.floor(100 + Math.random() * 900000));
             playerState.job = "Squire"; 
 
             printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
