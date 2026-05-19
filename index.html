@@ -136,18 +136,17 @@
             right: 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             color: #f5da91;
             font-size: 10px;
             letter-spacing: 1px;
             z-index: 10;
-            line-height: 10px;
         }
 
-        /* Scaled to match the exact size and alignment of the 10px typography */
+        /* Increased asset scale for visibility while maintaining crisp retro rendering rules */
         .clock-hourglass-asset {
-            width: 10px;
-            height: 10px;
+            width: 24px;
+            height: 24px;
             display: inline-block;
             vertical-align: middle;
             image-rendering: pixelated;
@@ -508,8 +507,6 @@
             document.removeEventListener('mousemove', handleVerticalStretch);
             document.removeEventListener('mouseup', stopVerticalStretch);
         }
-
-        styleControls = ['slide-width', 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
 
         function toggleDesignerMode() {
             isEditMode = !isEditMode;
