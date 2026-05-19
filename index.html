@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - GM Workspace Platform</title>
+    <title>Worlds Collide - GM Manual Drag Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Base Setup & Reset */
         body, html {
             margin: 0;
             padding: 0;
@@ -17,38 +16,48 @@
             box-sizing: border-box;
             font-family: 'Press Start 2P', monospace;
             image-rendering: pixelated;
-            image-rendering: crisp-edges;
         }
 
-        /* Two-Column Sidebar Framework using Explicit Percentage Slicing Matrices */
+        /* Layout Structure Focused on Static and Adjustable Pixel Blocks */
         .manuscript-workspace {
-            display: grid;
-            grid-template-columns: var(--sidebar-width, 320px) 1fr;
-            /* Leverages CSS variables mapped by percentage calculations to prevent snapping issues */
-            grid-template-rows: var(--split-row-top, 50%) var(--split-row-bottom, 48%);
-            grid-template-areas: 
-                "left-top main-viewport"
-                "left-bottom main-viewport";
-            gap: 16px;
+            display: flex;
             width: 100vw;
             height: 100vh;
             padding: 12px;
             box-sizing: border-box;
+            gap: 16px;
         }
 
-        /* Scroll Panel Base Containers */
+        /* Sidebar Holds Panels via Flexbox Rather Than Fixed Grid Track Weights */
+        .sidebar-container {
+            display: flex;
+            flex-direction: column;
+            width: var(--sidebar-width, 320px);
+            height: 100%;
+            position: relative;
+        }
+
         .scroll-panel-container {
             position: relative;
             width: 100%;
-            height: 100%;
             overflow: hidden;
-            /* Inverted typographic style defaults for pure black background fills */
             --font-weight: normal;
             --font-color: #ffffff;
             --font-outline: none;
         }
 
-        /* Sliced Asset Background Layer using black-filled smallscroll.png dimensions */
+        /* Initial Heights Mapped to Separate Injected Variables */
+        #panel-left-top {
+            height: var(--top-panel-height, 300px);
+            min-height: 120px;
+        }
+
+        #panel-left-bottom {
+            flex-grow: 1; /* Automatically consumes the remaining vertical track space */
+            min-height: 120px;
+        }
+
+        /* Sliced Asset Background Layer using your exact black smallscroll.png properties */
         .scroll-background {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -58,7 +67,6 @@
             border-width: 60px 20px 60px 20px;
         }
 
-        /* Text Coordinates positioned precisely over safe black canvas area */
         .scroll-text-wrapper {
             position: absolute;
             top: var(--text-y-offset, 15%);
@@ -71,7 +79,6 @@
             overflow: hidden;
         }
 
-        /* Enforcing 'Press Start 2P' text presentation with dynamic variable cascades */
         .scroll-text-entry {
             font-family: 'Press Start 2P', monospace;
             color: var(--font-color);
@@ -84,24 +91,32 @@
             line-height: 1.6;
         }
 
-        /* Visual indicator configurations for designer state loops */
+        /* Dynamic Drag Handle Widget Overlay */
+        .resize-handle-bar {
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            z-index: 999;
+            cursor: row-resize;
+            display: none; /* Only reveals when designer mode claim goes hot */
+        }
+
+        .manuscript-workspace.edit-active .resize-handle-bar {
+            display: block;
+        }
+
         .manuscript-workspace.edit-active .scroll-panel-container {
             outline: 2px dashed #4a3621;
-            cursor: pointer;
         }
 
         .manuscript-workspace.edit-active .scroll-panel-container.selected-target {
             outline: 2px solid #f5da91;
-            box-shadow: 0 0 8px rgba(245, 218, 145, 0.4);
         }
 
-        .scroll-text-entry[contenteditable="true"] {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Core Map Window Layer */
         .main-viewport {
-            grid-area: main-viewport;
+            flex-grow: 1;
             border: 4px double #4a3621;
             background: rgba(20, 20, 20, 0.8);
             display: flex;
@@ -110,7 +125,7 @@
             color: #7a6048;
         }
 
-        /* GM Studio Command Panel Elements */
+        /* Control Deck Style Container */
         .gm-inspector {
             position: fixed;
             bottom: 20px;
@@ -120,15 +135,7 @@
             padding: 15px;
             border: 2px solid #4a3621;
             z-index: 9999;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
             width: 300px;
-        }
-        .gm-inspector h3 {
-            margin: 0 0 10px 0;
-            font-size: 9px;
-            text-transform: uppercase;
-            text-align: center;
-            letter-spacing: 1px;
         }
         .gm-inspector button {
             font-family: 'Press Start 2P', monospace;
@@ -138,57 +145,41 @@
             border: 1px solid #f5da91;
             padding: 8px;
             cursor: pointer;
-            font-weight: bold;
             width: 100%;
             margin-bottom: 12px;
         }
-        .gm-inspector .control-group {
-            margin-bottom: 10px;
-        }
-        .gm-inspector label {
-            display: block;
-            font-size: 7px;
-            margin-bottom: 4px;
-        }
-        .gm-inspector input[type="range"], .gm-inspector select, .gm-inspector input[type="color"] {
+        .control-group { margin-bottom: 10px; }
+        .gm-inspector label { display: block; font-size: 7px; margin-bottom: 4px; }
+        .gm-inspector input[type="range"], .gm-inspector input[type="color"] {
             width: 100%;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
             background: #000;
             color: #f5da91;
             border: 1px solid #4a3621;
-            box-sizing: border-box;
         }
-        .gm-inspector input[type="color"] {
-            height: 24px;
-            padding: 2px;
-            cursor: pointer;
-        }
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .checkbox-row input {
-            width: auto !important;
-        }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input { width: auto !important; }
     </style>
 </head>
 <body>
 
     <div id="manuscript-workspace" class="manuscript-workspace">
-        
-        <div id="panel-left-top" class="scroll-panel-container" style="grid-area: left-top;" onclick="focusElement(this, event)">
-            <div class="scroll-background"></div>
-            <div class="scroll-text-wrapper">
-                <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: HERO&#10;LVL: 01&#10;JOB: SQUIRE</div>
+        <div class="sidebar-container">
+            
+            <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
+                <div class="scroll-background"></div>
+                <div class="scroll-text-wrapper">
+                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: HERO&#10;LVL: 01&#10;JOB: SQUIRE</div>
+                </div>
+                <div class="resize-handle-bar" id="drag-handle"></div>
             </div>
-        </div>
 
-        <div id="panel-left-bottom" class="scroll-panel-container" style="grid-area: left-bottom;" onclick="focusElement(this, event)">
-            <div class="scroll-background"></div>
-            <div class="scroll-text-wrapper">
-                <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:&#10;CLEAR THE FLOOR</div>
+            <div style="height: 16px; min-height: 16px; pointer-events: none;"></div>
+
+            <div id="panel-left-bottom" class="scroll-panel-container" onclick="focusElement(this, event)">
+                <div class="scroll-background"></div>
+                <div class="scroll-text-wrapper">
+                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:&#10;CLEAR THE FLOOR</div>
+                </div>
             </div>
         </div>
 
@@ -203,11 +194,7 @@
         
         <div class="control-group">
             <label>SIDEBAR WIDTH (PX):</label>
-            <input type="range" id="slide-width" min="200" max="500" value="320" oninput="modifyGridTrack('width', this.value)" disabled>
-        </div>
-        <div class="control-group">
-            <label>SIDEBAR SPLIT STEP (%):</label>
-            <input type="range" id="slide-split" min="20" max="80" value="50" oninput="modifyGridTrack('split', this.value)" disabled>
+            <input type="range" id="slide-width" min="200" max="500" value="320" oninput="adjustWidth(this.value)" disabled>
         </div>
 
         <hr style="border-color: #4a3621; margin: 12px 0;">
@@ -234,22 +221,48 @@
     <script>
         let isEditMode = false;
         let activeTargetPanel = null;
+        let isDragging = false;
         const workspace = document.getElementById('manuscript-workspace');
+        const topPanel = document.getElementById('panel-left-top');
+        const dragHandle = document.getElementById('drag-handle');
 
-        // Activates configuration maps and input states across variables
+        // Manual Mouse Drag Event Listener Logic Loops
+        dragHandle.addEventListener('mousedown', function(e) {
+            if (!isEditMode) return;
+            e.preventDefault();
+            isDragging = true;
+            document.addEventListener('mousemove', handleVerticalStretch);
+            document.addEventListener('mouseup', stopVerticalStretch);
+        });
+
+        function handleVerticalStretch(e) {
+            if (!isDragging) return;
+            // Calculate cursor offset delta relative to container boundaries
+            const topPanelRect = topPanel.getBoundingClientRect();
+            const computedHeight = e.clientY - topPanelRect.top;
+            
+            if (computedHeight >= 120 && computedHeight <= window.innerHeight - 200) {
+                workspace.style.setProperty('--top-panel-height', `${computedHeight}px`);
+            }
+        }
+
+        function stopVerticalStretch() {
+            isDragging = false;
+            document.removeEventListener('mousemove', handleVerticalStretch);
+            document.removeEventListener('mouseup', stopVerticalStretch);
+        }
+
         function toggleDesignerMode() {
             isEditMode = !isEditMode;
             const textNodes = document.querySelectorAll('.scroll-text-entry');
             const toggleButton = document.getElementById('btn-toggle-edit');
-            const structuralControls = ['slide-width', 'slide-split'];
             
             if (isEditMode) {
                 workspace.classList.add('edit-active');
                 toggleButton.innerText = "LOCK GRID SECTOR";
                 toggleButton.style.background = "#8c2d19";
                 toggleButton.style.color = "#ffffff";
-                
-                structuralControls.forEach(id => document.getElementById(id).removeAttribute('disabled'));
+                document.getElementById('slide-width').removeAttribute('disabled');
                 textNodes.forEach(node => node.contentEditable = "true");
             } else {
                 workspace.classList.remove('edit-active');
@@ -262,7 +275,7 @@
                     activeTargetPanel = null;
                 }
                 
-                const styleControls = [...structuralControls, 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
+                const styleControls = ['slide-width', 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
                 styleControls.forEach(id => {
                     const el = document.getElementById(id);
                     el.setAttribute('disabled', 'true');
@@ -274,23 +287,21 @@
             }
         }
 
-        // Sets focus hook constraints on selected node arrays
+        function adjustWidth(value) {
+            if (isEditMode) workspace.style.setProperty('--sidebar-width', `${value}px`);
+        }
+
         function focusElement(element, event) {
-            if (!isEditMode) return;
+            if (!isEditMode || event.target === dragHandle) return;
             event.stopPropagation();
 
-            if (activeTargetPanel) {
-                activeTargetPanel.classList.remove('selected-target');
-            }
-
+            if (activeTargetPanel) activeTargetPanel.classList.remove('selected-target');
             activeTargetPanel = element;
             activeTargetPanel.classList.add('selected-target');
 
-            // Free typography deck field controls
             const typographyFields = ['text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
             typographyFields.forEach(id => document.getElementById(id).removeAttribute('disabled'));
 
-            // Parse runtime variables to align the controller options
             const wrapper = element.querySelector('.scroll-text-wrapper');
             const currentOffset = parseInt(window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15");
             document.getElementById('text-offset-slider').value = currentOffset;
@@ -305,10 +316,8 @@
             document.getElementById('font-outline-check').checked = (currentOutline !== 'none' && currentOutline !== '');
         }
 
-        // Commits individual custom styling declarations down to node scopes
         function applyTypographyStyle(property, value) {
             if (!activeTargetPanel || !isEditMode) return;
-
             const wrapper = activeTargetPanel.querySelector('.scroll-text-wrapper');
 
             if (property === 'offset') {
@@ -318,30 +327,11 @@
             } else if (property === 'bold') {
                 activeTargetPanel.style.setProperty('--font-weight', value ? 'bold' : 'normal');
             } else if (property === 'outline') {
-                // Severe contrast multi-directional pixel drop shadow mapping black lines around white text elements
-                const outlineString = value ? 
-                    '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none';
+                const outlineString = value ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none';
                 activeTargetPanel.style.setProperty('--font-outline', outlineString);
             }
         }
 
-        // Adjusts grid configurations using dynamic CSS properties with static math equations
-        function modifyGridTrack(type, value) {
-            if (!isEditMode) return;
-            
-            if (type === 'width') {
-                workspace.style.setProperty('--sidebar-width', `${value}px`);
-            } else if (type === 'split') {
-                const topTrackPercentage = parseInt(value);
-                // Math conversion loop to handle grid rows elegantly without crushing elements
-                const bottomTrackPercentage = 98 - topTrackPercentage;
-                
-                workspace.style.setProperty('--split-row-top', `${topTrackPercentage}%`);
-                workspace.style.setProperty('--split-row-bottom', `${bottomTrackPercentage}%`);
-            }
-        }
-
-        // Standardizes coordinate values back into hex outputs for element selectors
         function rgbToHex(rgb) {
             if (rgb.startsWith('#')) return rgb;
             const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -352,35 +342,28 @@
             }).join('');
         }
 
-        // Compiles JSON configurations for backend matrix persistence
         function saveStateToConsole() {
             const payload = {
-                target_region: "left_sidebar_black_variant",
-                tracks: {
+                target_region: "manual_drag_black_variant",
+                computed_dimensions: {
                     sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
-                    top_row_height: window.getComputedStyle(workspace).getPropertyValue('--split-row-top') || "50%",
-                    bottom_row_height: window.getComputedStyle(workspace).getPropertyValue('--split-row-bottom') || "48%"
+                    top_panel_height: window.getComputedStyle(topPanel).height
                 },
                 panels: []
             };
-
             document.querySelectorAll('.scroll-panel-container').forEach(panel => {
                 const textEntry = panel.querySelector('.scroll-text-entry');
                 const wrapper = panel.querySelector('.scroll-text-wrapper');
-                
                 payload.panels.push({
                     dom_id: panel.id,
                     content: textEntry.innerHTML,
                     styles: {
                         y_offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15%",
-                        color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff",
-                        weight: window.getComputedStyle(panel).getPropertyValue('--font-weight') || "normal",
-                        outline: window.getComputedStyle(panel).getPropertyValue('--font-outline') || "none"
+                        color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff"
                     }
                 });
             });
-
-            console.log("State Saved:", JSON.stringify(payload, null, 2));
+            console.log("State Locked System Payload:", JSON.stringify(payload, null, 2));
         }
     </script>
 </body>
