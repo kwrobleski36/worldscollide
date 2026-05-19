@@ -92,6 +92,12 @@
             line-height: 1.6;
         }
 
+        /* Syntax Color highlight class context for variables */
+        .variable-highlight-token {
+            color: #f5da91 !important;
+            text-shadow: 0px 0px 4px rgba(245, 218, 145, 0.8) !important;
+        }
+
         /* Mouse Drag Resize Intermediary Component overlaying layout margins */
         .resize-handle-bar {
             position: absolute;
@@ -143,7 +149,7 @@
             z-index: 10;
         }
 
-        /* Target sizing rules tracking your background-dropped asset structure */
+        /* Increased asset scale for visibility while maintaining crisp retro rendering rules */
         .clock-hourglass-asset {
             width: 24px;
             height: 24px;
@@ -235,7 +241,7 @@
         /* GM Calibration Widget Styling Context */
         .gm-inspector {
             position: fixed;
-            bottom: 210px;
+            bottom: 20px;
             right: 20px;
             background: #111;
             color: #f5da91;
@@ -289,7 +295,7 @@
             <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: %player_name (%player_accountnumber)\nLVL: %player_level\nAGE: %player_age\nJOB: %player_job</div>
+                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false"></div>
                 </div>
                 <div class="resize-handle-bar" id="drag-handle"></div>
             </div>
@@ -299,7 +305,7 @@
             <div id="panel-left-bottom" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:\nINITIALIZE IDENTITY</div>
+                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false"></div>
                 </div>
             </div>
         </div>
@@ -326,8 +332,9 @@
     </div>
 
     <div id="gm-inspector-panel" class="gm-inspector">
-        <h3>SIDEBAR CONTROL DECK</h3>
+        <h3>UI WIZARD DESIGNER</h3>
         <button id="btn-toggle-edit" onclick="toggleDesignerMode()">TOGGLE DESIGNER</button>
+        <button id="btn-toggle-highlight" onclick="toggleVariableHighlighting()" style="background: #19588c; border-color: #91bbf5;">HIGHLIGHT VARIABLES: OFF</button>
         <button id="btn-hide-ui" onclick="toggleInspectorVisibility()" style="background: #2e2214;">HIDE CONTROL DECK</button>
         
         <div class="control-group">
@@ -366,9 +373,15 @@
             job: "None" 
         };
 
-        let initialCreationTimestamp = null;
+        // Cache objects for storing raw user input configurations before replacement loops execute
+        let rawPanelInputCache = {
+            'text-left-top': '',
+            'text-left-bottom': ''
+        };
 
+        let initialCreationTimestamp = null;
         let isEditMode = false;
+        let highlightVariablesActive = false;
         let activeTargetPanel = null;
         let isDragging = false;
         
@@ -383,13 +396,12 @@
         window.addEventListener('DOMContentLoaded', () => {
             initializeChronologyTracker();
             loadSavedConfiguration();
-            renderStatusPanelDisplay();
+            refreshPanelRendering();
             initializeFirstTimeLoginSequence();
         });
 
         // Real-Time UTC Chronology Engine & Day Rollover Calculation Loop
         function initializeChronologyTracker() {
-            // Checks if a creation epoch exists inside storage before declaring standard initialization window
             const savedState = localStorage.getItem('wc_gm_sidebar_state');
             if (savedState) {
                 try {
@@ -413,35 +425,78 @@
                 const seconds = String(now.getUTCSeconds()).padStart(2, '0');
                 document.getElementById('utc-clock-display').innerText = `${hours}:${minutes}:${seconds} UTC`;
 
-                // Evaluates total elapsed days matching Universal Coordinated Time (UTC)
                 const elapsedDays = Math.floor((Date.now() - initialCreationTimestamp) / 86400000);
                 const currentAgeCalculation = 1 + elapsedDays;
 
                 if (currentAgeCalculation !== playerState.age) {
                     playerState.age = currentAgeCalculation;
-                    renderStatusPanelDisplay();
+                    refreshPanelRendering();
                     saveConfigurationToStorage();
                 }
             }
-            // Continuous internal thread looping execution every single second without stopping
             setInterval(updateClock, 1000);
             updateClock();
         }
 
-        function renderStatusPanelDisplay() {
-            const targetNode = document.getElementById('text-left-top');
-            if (!targetNode) return;
+        // Resolves layout text fields by looking at the active environment state
+        function refreshPanelRendering() {
+            document.querySelectorAll('.scroll-text-entry').forEach(node => {
+                // If actively editing in the UI wizard, process tracking modifications directly on raw inputs
+                if (isEditMode) {
+                    if (highlightVariablesActive) {
+                        renderVariableColorHighlights(node);
+                    }
+                    return;
+                }
 
-            let layoutTemplate = "NAME: %player_name (%player_accountnumber)\nLVL: %player_level\nAGE: %player_age\nJOB: %player_job";
+                // If locked, swap matching placeholder strings for dynamic configuration markers
+                let targetDataString = rawPanelInputCache[node.id] || '';
+                
+                let processedView = targetDataString
+                    .replace(/%player_name/g, playerState.name)
+                    .replace(/%player_accountnumber/g, playerState.accountnumber)
+                    .replace(/%player_level/g, playerState.level)
+                    .replace(/%player_age/g, playerState.age)
+                    .replace(/%player_job/g, playerState.job);
+
+                node.innerText = processedView;
+            });
+        }
+
+        // Applies regex syntax color spans to variables inside the wizard text view
+        function renderVariableColorHighlights(node) {
+            let originalText = node.innerText;
+            if (!originalText) return;
+
+            // Simple regex capture matching data blocks starting with %
+            let HTMLHighlightedContent = originalText.replace(/(%[a-zA-Z0-9_]+)/g, '<span class="variable-highlight-token">$1</span>');
             
-            let currentView = layoutTemplate
-                .replace("%player_name", playerState.name)
-                .replace("%player_accountnumber", playerState.accountnumber)
-                .replace("%player_level", playerState.level)
-                .replace("%player_age", playerState.age)
-                .replace("%player_job", playerState.job);
+            // To prevent cursor jumping during active typing blocks, safely assign HTML layers
+            node.innerHTML = HTMLHighlightedContent;
+        }
 
-            targetNode.innerText = currentView;
+        // Variable syntax tracking color selector controller
+        function toggleVariableHighlighting() {
+            highlightVariablesActive = !highlightVariablesActive;
+            const btn = document.getElementById('btn-toggle-highlight');
+            
+            if (highlightVariablesActive) {
+                btn.innerText = "HIGHLIGHT VARIABLES: ON";
+                btn.style.background = "#4c8c19";
+                btn.style.borderHeader = "#91f5a5";
+            } else {
+                btn.innerText = "HIGHLIGHT VARIABLES: OFF";
+                btn.style.background = "#19588c";
+                btn.style.borderColor = "#91bbf5";
+            }
+            
+            document.querySelectorAll('.scroll-text-entry').forEach(node => {
+                if (highlightVariablesActive && isEditMode) {
+                    renderVariableColorHighlights(node);
+                } else {
+                    node.innerText = node.innerText; // Reverts HTML nodes back to clear textual elements
+                }
+            });
         }
 
         function initializeFirstTimeLoginSequence() {
@@ -489,16 +544,15 @@
             }
 
             playerState.name = sanitizedUpperName;
-            // Preserves indices 1 through 99; local mock increments starting at absolute index 100
-            playerState.accountnumber = String(Math.floor(100 + Math.random() * 900000));
+            // Kevin's account number evaluation points strictly to fixed base 100 tag
+            playerState.accountnumber = "100";
             playerState.job = "Squire"; 
 
             printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
-            renderStatusPanelDisplay();
+            refreshPanelRendering();
             
             terminalInput.setAttribute('disabled', 'true');
             terminalInput.blur();
-            document.getElementById('text-left-bottom').innerText = "QUEST:\nCLEAR THE FLOOR";
             saveConfigurationToStorage();
         }
 
@@ -537,8 +591,14 @@
                 toggleButton.style.background = "#8c2d19";
                 toggleButton.style.color = "#ffffff";
                 document.getElementById('slide-width').removeAttribute('disabled');
+                
                 textNodes.forEach(node => {
-                    if(node.id !== 'text-left-top') node.contentEditable = "true";
+                    node.contentEditable = "true";
+                    // Display layout values un-parsed during creative wizard modifications
+                    node.innerText = rawPanelInputCache[node.id] || '';
+                    if (highlightVariablesActive) {
+                        renderVariableColorHighlights(node);
+                    }
                 });
             } else {
                 workspace.classList.remove('edit-active');
@@ -558,7 +618,13 @@
                     if (el.type === 'checkbox') el.checked = false;
                 });
                 
-                textNodes.forEach(node => node.contentEditable = "false");
+                textNodes.forEach(node => {
+                    node.contentEditable = "false";
+                    // Cache the clean text stream safely before entering runtime token parser replacement matches
+                    rawPanelInputCache[node.id] = node.innerText;
+                });
+
+                refreshPanelRendering();
                 saveConfigurationToStorage();
             }
         }
@@ -656,14 +722,13 @@
                 top_panel_height: window.getComputedStyle(topPanel).height,
                 player: playerState,
                 initialCreationTimestamp: initialCreationTimestamp,
+                rawPanelInputCache: rawPanelInputCache,
                 panels: {}
             };
 
             document.querySelectorAll('.scroll-panel-container').forEach(panel => {
-                const textEntry = panel.querySelector('.scroll-text-entry');
                 const wrapper = panel.querySelector('.scroll-text-wrapper');
                 layoutState.panels[panel.id] = {
-                    text_html: textEntry.innerHTML,
                     offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15%",
                     color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff",
                     weight: window.getComputedStyle(panel).getPropertyValue('--font-weight') || "normal",
@@ -695,14 +760,15 @@
                     initialCreationTimestamp = parseInt(config.initialCreationTimestamp);
                 }
 
+                if (config.rawPanelInputCache) {
+                    rawPanelInputCache = config.rawPanelInputCache;
+                }
+
                 Object.keys(config.panels).forEach(id => {
                     const panel = document.getElementById(id);
                     if (!panel) return;
                     
                     const item = config.panels[id];
-                    if(id !== 'panel-left-top') {
-                        panel.querySelector('.scroll-text-entry').innerHTML = item.text_html;
-                    }
                     panel.querySelector('.scroll-text-wrapper').style.setProperty('--text-y-offset', item.offset);
                     panel.style.setProperty('--font-color', item.color);
                     panel.style.setProperty('--font-weight', item.weight);
