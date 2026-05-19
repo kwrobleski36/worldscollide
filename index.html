@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - GM Sidebar Workspace</title>
+    <title>Worlds Collide - GM Workspace Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* Base Setup & Reset */
@@ -20,11 +20,12 @@
             image-rendering: crisp-edges;
         }
 
-        /* Two-Column Responsive Sidebar Framework */
+        /* Two-Column Sidebar Framework using Explicit Percentage Slicing Matrices */
         .manuscript-workspace {
             display: grid;
             grid-template-columns: var(--sidebar-width, 320px) 1fr;
-            grid-template-rows: var(--top-panel-height, 1fr) 1fr;
+            /* Leverages CSS variables mapped by percentage calculations to prevent snapping issues */
+            grid-template-rows: var(--split-row-top, 50%) var(--split-row-bottom, 48%);
             grid-template-areas: 
                 "left-top main-viewport"
                 "left-bottom main-viewport";
@@ -47,7 +48,7 @@
             --font-outline: none;
         }
 
-        /* Sliced Asset Background Layer using your exact black-filled smallscroll.png dimensions */
+        /* Sliced Asset Background Layer using black-filled smallscroll.png dimensions */
         .scroll-background {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -262,7 +263,7 @@
                 }
                 
                 const styleControls = [...structuralControls, 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
-                allControls = styleControls.forEach(id => {
+                styleControls.forEach(id => {
                     const el = document.getElementById(id);
                     el.setAttribute('disabled', 'true');
                     if (el.type === 'checkbox') el.checked = false;
@@ -324,14 +325,19 @@
             }
         }
 
-        // Adjusts grid configurations using dynamic CSS properties
+        // Adjusts grid configurations using dynamic CSS properties with static math equations
         function modifyGridTrack(type, value) {
             if (!isEditMode) return;
             
             if (type === 'width') {
                 workspace.style.setProperty('--sidebar-width', `${value}px`);
             } else if (type === 'split') {
-                workspace.style.setProperty('--top-panel-height', `${value}fr`);
+                const topTrackPercentage = parseInt(value);
+                // Math conversion loop to handle grid rows elegantly without crushing elements
+                const bottomTrackPercentage = 98 - topTrackPercentage;
+                
+                workspace.style.setProperty('--split-row-top', `${topTrackPercentage}%`);
+                workspace.style.setProperty('--split-row-bottom', `${bottomTrackPercentage}%`);
             }
         }
 
@@ -352,7 +358,8 @@
                 target_region: "left_sidebar_black_variant",
                 tracks: {
                     sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
-                    top_panel_weight: window.getComputedStyle(workspace).getPropertyValue('--top-panel-height') || "1fr"
+                    top_row_height: window.getComputedStyle(workspace).getPropertyValue('--split-row-top') || "50%",
+                    bottom_row_height: window.getComputedStyle(workspace).getPropertyValue('--split-row-bottom') || "48%"
                 },
                 panels: []
             };
