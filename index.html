@@ -143,7 +143,7 @@
             z-index: 10;
         }
 
-        /* Increased asset scale for visibility while maintaining crisp retro rendering rules */
+        /* Target sizing rules tracking your background-dropped asset structure */
         .clock-hourglass-asset {
             width: 24px;
             height: 24px;
@@ -306,7 +306,7 @@
 
         <div class="main-viewport">
             <div class="clock-container">
-                <img src="hourglass.jpg" class="clock-hourglass-asset" alt="">
+                <img src="hourglassremove.png" class="clock-hourglass-asset" alt="">
                 <span id="utc-clock-display">00:00:00 UTC</span>
             </div>
 
@@ -389,7 +389,22 @@
 
         // Real-Time UTC Chronology Engine & Day Rollover Calculation Loop
         function initializeChronologyTracker() {
-            initialCreationTimestamp = Date.now();
+            // Checks if a creation epoch exists inside storage before declaring standard initialization window
+            const savedState = localStorage.getItem('wc_gm_sidebar_state');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    if (parsed.initialCreationTimestamp) {
+                        initialCreationTimestamp = parseInt(parsed.initialCreationTimestamp);
+                    }
+                } catch (e) {
+                    console.error("Failed to parse chronological timestamp state:", e);
+                }
+            }
+
+            if (!initialCreationTimestamp) {
+                initialCreationTimestamp = Date.now();
+            }
             
             function updateClock() {
                 const now = new Date();
@@ -405,8 +420,10 @@
                 if (currentAgeCalculation !== playerState.age) {
                     playerState.age = currentAgeCalculation;
                     renderStatusPanelDisplay();
+                    saveConfigurationToStorage();
                 }
             }
+            // Continuous internal thread looping execution every single second without stopping
             setInterval(updateClock, 1000);
             updateClock();
         }
@@ -638,6 +655,7 @@
                 sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
                 top_panel_height: window.getComputedStyle(topPanel).height,
                 player: playerState,
+                initialCreationTimestamp: initialCreationTimestamp,
                 panels: {}
             };
 
@@ -671,6 +689,10 @@
                     if(playerState.name !== "???") {
                         document.getElementById('terminal-command-line').setAttribute('disabled', 'true');
                     }
+                }
+
+                if (config.initialCreationTimestamp) {
+                    initialCreationTimestamp = parseInt(config.initialCreationTimestamp);
                 }
 
                 Object.keys(config.panels).forEach(id => {
