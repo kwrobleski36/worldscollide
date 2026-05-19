@@ -116,7 +116,7 @@
             background-color: #513085;
         }
 
-        /* Main Game Layout - Standard row flow alignments */
+        /* Main Game Layout */
         .game-container {
             position: relative;
             z-index: 5;
@@ -133,17 +133,19 @@
         /* Left Fixed Scroll Panel Configuration */
         .left-scroll-panel {
             width: 320px;
-            height: 320px; /* Fixed scale constraints to eliminate background stretching */
+            height: 320px;
+            background-color: #000; /* Forces black canvas behind the alpha transparency channel */
             background-image: url('smallscroll.png');
             background-size: 100% 100%;
             background-repeat: no-repeat;
-            padding: 65px 45px; /* Keeps interior content positioned purely on parchment textures */
+            padding: 75px 50px 75px 55px; /* Aligns textual strings inside the tan inner boundary */
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            justify-content: center;
+            gap: 12px;
             color: #4a3621;
             font-size: 9px;
-            line-height: 1.4;
+            line-height: 1.5;
             flex-shrink: 0;
         }
 
