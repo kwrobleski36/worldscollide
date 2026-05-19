@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - Manuscript Workspace</title>
+    <title>Worlds Collide - GM Grid Workspace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* Base Setup & Reset */
         body, html {
@@ -11,16 +12,19 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #1a1a1a;
+            background-color: #000;
             overflow: hidden;
             box-sizing: border-box;
+            /* Direct font family tracking matching index.html standards */
+            font-family: 'Press Start 2P', monospace;
+            image-rendering: pixelated;
         }
 
-        /* Hard Grid Workspace Layout */
+        /* Hard Grid Workspace Layout - Variable Track Backbones managed by JS */
         .manuscript-workspace {
             display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: 80px 1fr 1fr;
+            grid-template-columns: var(--sidebar-width, 320px) 1fr;
+            grid-template-rows: var(--header-height, 80px) var(--top-panel-height, 1fr) 1fr;
             grid-template-areas: 
                 "top-scroll top-scroll"
                 "left-top main-viewport"
@@ -61,7 +65,7 @@
         /* Text Wrapping Matrix mapped to safe parchment zones */
         .scroll-text-wrapper {
             position: absolute;
-            top: 12%;
+            top: var(--text-y-offset, 12%);
             left: 10%;
             right: 10%;
             bottom: 12%;
@@ -69,40 +73,41 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: top 0.1s ease;
         }
 
-        /* Enforcing the Final Fantasy VI Monospace Typeface */
+        /* Enforcing the exact 'Press Start 2P' retro aesthetic */
         .scroll-text-entry {
-            font-family: 'final-fantasy-vi', 'Courier New', monospace;
+            font-family: 'Press Start 2P', monospace;
             color: #4a3621;
-            font-size: clamp(10px, 2.5cqi, 16px);
+            font-size: clamp(8px, 1.8cqi, 12px);
             white-space: pre-wrap;
             word-break: break-word;
             outline: none;
-            line-height: 1.4;
+            line-height: 1.6;
         }
 
-        /* Highlight editable field while in designer mode */
+        /* Highlight editable/movable elements during configuration states */
+        .manuscript-workspace.edit-active .scroll-panel-container {
+            outline: 2px dashed #f5da91;
+            cursor: pointer;
+        }
+
         .scroll-text-entry[contenteditable="true"] {
-            background: rgba(245, 218, 145, 0.3);
-            box-shadow: 0 0 4px #4a3621;
-            cursor: text;
+            background: rgba(245, 218, 145, 0.2);
         }
 
         /* Main Map/Game Viewport Window */
         .main-viewport {
             grid-area: main-viewport;
-            border: 2px solid #4a3621;
-            background: rgba(0, 0, 0, 0.4);
+            border: 4px double #4a3621;
+            background: rgba(20, 20, 20, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #7a6048;
-            font-family: monospace;
         }
 
-        /* GM Inspector Floating Widget Style */
+        /* GM Layout Control Panel Overlay */
         .gm-inspector {
             position: fixed;
             bottom: 20px;
@@ -111,29 +116,35 @@
             color: #f5da91;
             padding: 15px;
             border: 2px solid #f5da91;
-            font-family: monospace;
             z-index: 9999;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            width: 280px;
         }
         .gm-inspector h3 {
             margin: 0 0 10px 0;
-            font-size: 14px;
+            font-size: 10px;
             text-transform: uppercase;
+            text-align: center;
         }
         .gm-inspector button {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
             background: #f5da91;
             color: #2e2214;
             border: none;
-            padding: 6px 12px;
+            padding: 8px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .gm-inspector .control-group {
+            margin-bottom: 8px;
         }
         .gm-inspector label {
             display: block;
-            font-size: 11px;
-            margin-bottom: 5px;
+            font-size: 7px;
+            margin-bottom: 4px;
         }
         .gm-inspector input[type="range"] {
             width: 100%;
@@ -147,70 +158,87 @@
         <div id="panel-top-scroll" class="scroll-panel-container" style="grid-area: top-scroll;">
             <div class="scroll-background horizontal-scroll"></div>
             <div class="scroll-text-wrapper">
-                <div id="text-top-scroll" class="scroll-text-entry" contenteditable="false">Worlds Collide Campaign - GM Layout Designer Mode</div>
+                <div id="text-top-scroll" class="scroll-text-entry" contenteditable="false">WORLDS COLLIDE GM SETUP</div>
             </div>
         </div>
 
         <div id="panel-left-top" class="scroll-panel-container" style="grid-area: left-top;">
             <div class="scroll-background vertical-scroll"></div>
             <div class="scroll-text-wrapper">
-                <div id="text-left-top" class="scroll-text-entry" contenteditable="false">Name: Hero&#10;Level: 1&#10;Job: Squire</div>
+                <div id="text-left-top" class="scroll-text-entry" contenteditable="false">NAME: HERO&#10;LVL: 01&#10;JOB: SQUIRE</div>
             </div>
         </div>
 
         <div id="panel-left-bottom" class="scroll-panel-container" style="grid-area: left-bottom;">
             <div class="scroll-background vertical-scroll"></div>
             <div class="scroll-text-wrapper">
-                <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">Active Quest:&#10;Clear the Forest Floor</div>
+                <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">QUEST:&#10;CLEAR THE FLOOR</div>
             </div>
         </div>
 
         <div class="main-viewport">
-            [Main Screen Viewport Content Engine]
+            [VIEWPORT RENDER LAYER]
         </div>
     </div>
 
     <div id="gm-inspector-panel" class="gm-inspector">
-        <h3>Designer Panel</h3>
-        <button id="btn-toggle-edit" onclick="toggleEditMode()">Toggle Edit Mode</button>
-        <hr style="border-color: #4a3621;">
-        <div>
-            <label>Vertical Position Offset (%):</label>
-            <input type="range" id="text-offset-slider" min="5" max="75" value="12" oninput="adjustTextPosition(this.value)" disabled>
+        <h3>GRID CONTROL DECK</h3>
+        <button id="btn-toggle-edit" onclick="toggleEditMode()">TOGGLE DESIGNER</button>
+        
+        <div class="control-group">
+            <label>SIDEBAR WIDTH (PX):</label>
+            <input type="range" id="slide-width" min="200" max="500" value="320" oninput="resizeGridTrack('width', this.value)" disabled>
+        </div>
+        <div class="control-group">
+            <label>TOP PANEL HEIGHT (PX):</label>
+            <input type="range" id="slide-height" min="50" max="150" value="80" oninput="resizeGridTrack('height', this.value)" disabled>
+        </div>
+        <div class="control-group">
+            <label>SIDEBAR SPLIT STEP (%):</label>
+            <input type="range" id="slide-split" min="20" max="80" value="50" oninput="resizeGridTrack('split', this.value)" disabled>
+        </div>
+        <div class="control-group">
+            <label>TEXT LINE OFFSET (%):</label>
+            <input type="range" id="text-offset-slider" min="5" max="65" value="12" oninput="adjustTextPlacement(this.value)" disabled>
         </div>
     </div>
 
     <script>
         let isEditMode = false;
         let activeTargetTextNode = null;
+        const workspace = document.getElementById('manuscript-workspace');
 
-        // Toggles interactive text modifications and element selections
+        // Activates configuration flags and interfaces
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const textNodes = document.querySelectorAll('.scroll-text-entry');
             const toggleButton = document.getElementById('btn-toggle-edit');
-            const positionSlider = document.getElementById('text-offset-slider');
+            const controls = ['slide-width', 'slide-height', 'slide-split', 'text-offset-slider'];
             
             if (isEditMode) {
-                toggleButton.innerText = "Lock Layout & Save";
+                workspace.classList.add('edit-active');
+                toggleButton.innerText = "LOCK GRID SECTOR";
                 toggleButton.style.background = "#8c2d19";
                 toggleButton.style.color = "#ffffff";
-                positionSlider.removeAttribute('disabled');
+                
+                controls.forEach(id => document.getElementById(id).removeAttribute('disabled'));
                 
                 textNodes.forEach(node => {
                     node.contentEditable = "true";
                     node.onclick = (e) => {
                         activeTargetTextNode = e.target;
-                        // Synchronize slider track position to match the selected zone
-                        const currentTop = e.target.parentElement.style.top || "12%";
-                        positionSlider.value = parseInt(currentTop);
+                        const wrapper = e.target.parentElement;
+                        const currentTop = window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12%";
+                        document.getElementById('text-offset-slider').value = parseInt(currentTop);
                     };
                 });
             } else {
-                toggleButton.innerText = "Toggle Edit Mode";
+                workspace.classList.remove('edit-active');
+                toggleButton.innerText = "TOGGLE DESIGNER";
                 toggleButton.style.background = "#f5da91";
                 toggleButton.style.color = "#2e2214";
-                positionSlider.setAttribute('disabled', 'true');
+                
+                controls.forEach(id => document.getElementById(id).setAttribute('disabled', 'true'));
                 
                 textNodes.forEach(node => {
                     node.contentEditable = "false";
@@ -218,38 +246,55 @@
                 });
 
                 activeTargetTextNode = null;
-                saveLayoutConfiguration();
+                serializeWorkspaceState();
             }
         }
 
-        // Moves the wrapper containing the editable text relative to the background slice
-        function adjustTextPosition(value) {
+        // Recomputes track dimensions globally while maintaining hard containment limits
+        function resizeGridTrack(type, value) {
+            if (!isEditMode) return;
+            
+            if (type === 'width') {
+                workspace.style.setProperty('--sidebar-width', `${value}px`);
+            } else if (type === 'height') {
+                workspace.style.setProperty('--header-height', `${value}px`);
+            } else if (type === 'split') {
+                // Adjust split ratio between left-top and left-bottom panels inside the layout rows
+                workspace.style.setProperty('--top-panel-height', `${value}fr`);
+            }
+        }
+
+        // Alters line position offsets within parchment frames
+        function adjustTextPlacement(value) {
             if (activeTargetTextNode && isEditMode) {
-                activeTargetTextNode.parentElement.style.top = value + "%";
+                activeTargetTextNode.parentElement.style.setProperty('--text-y-offset', `${value}%`);
             }
         }
 
-        // Serializes state data to sync with your Cloudflare D1 environment matrix
-        function saveLayoutConfiguration() {
-            const layoutConfig = {
-                layout_version: "production_manuscript_v1",
-                timestamp: new Date().toISOString(),
-                panels: []
+        // Gathers active panel track states for D1 delivery
+        function serializeWorkspaceState() {
+            const statePayload = {
+                layout_blueprint: "locked_snes_grid",
+                dimensions: {
+                    sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
+                    header_height: window.getComputedStyle(workspace).getPropertyValue('--header-height') || "80px",
+                    top_panel_weight: window.getComputedStyle(workspace).getPropertyValue('--top-panel-height') || "1fr"
+                },
+                node_manifest: []
             };
 
             document.querySelectorAll('.scroll-panel-container').forEach(panel => {
                 const textEntry = panel.querySelector('.scroll-text-entry');
                 const wrapper = panel.querySelector('.scroll-text-wrapper');
                 
-                layoutConfig.panels.push({
-                    panel_dom_id: panel.id,
-                    inner_html: textEntry.innerHTML,
-                    top_percentage_offset: wrapper.style.top || "12%"
+                statePayload.node_manifest.push({
+                    dom_id: panel.id,
+                    text_value: textEntry.innerHTML,
+                    text_y_offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "12%"
                 });
             });
 
-            console.log("Layout State JSON compiled for Cloudflare D1 Sync:", JSON.stringify(layoutConfig, null, 2));
-            // Trigger your custom app fetch call here to pass layoutConfig to your API worker endpoint
+            console.log("Grid State JSON compiled for sync:", JSON.stringify(statePayload, null, 2));
         }
     </script>
 </body>
