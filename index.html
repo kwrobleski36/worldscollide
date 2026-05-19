@@ -116,7 +116,7 @@
             background-color: #513085;
         }
 
-        /* Main Game Layout - Reversed Row Flow to Push Scroll Right */
+        /* Main Game Layout - Standard row flow alignments */
         .game-container {
             position: relative;
             z-index: 5;
@@ -126,81 +126,28 @@
             padding: 20px;
             gap: 20px;
             background-color: #05020c;
-            flex-direction: row-reverse;
+            flex-direction: row;
+            align-items: flex-start;
         }
 
-        /* Right Scroll Panel Slicing Coordinates */
-        .right-scroll-panel {
+        /* Left Fixed Scroll Panel Configuration */
+        .left-scroll-panel {
             width: 320px;
-            height: 100%;
-            box-sizing: border-box;
-            padding: 40px 30px;
-            border-style: solid;
-            border-width: 60px 20px 60px 20px;
-            border-image: url('smallscroll.png') 60 20 60 20 fill repeat; /* Fixed asset format extension */
+            height: 320px; /* Fixed scale constraints to eliminate background stretching */
+            background-image: url('smallscroll.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            padding: 65px 45px; /* Keeps interior content positioned purely on parchment textures */
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 14px;
             color: #4a3621;
-            margin-top: -30px;
-            margin-bottom: -30px;
-        }
-
-        .scroll-section {
-            width: 100%;
-        }
-
-        .scroll-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            border-bottom: 2px dashed #7a502c;
-            padding-bottom: 6px;
-            margin-bottom: 12px;
-            color: #211104;
-            font-weight: bold;
-        }
-
-        .player-badge {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
             font-size: 9px;
             line-height: 1.4;
+            flex-shrink: 0;
         }
 
-        .profile-placeholder {
-            width: 48px;
-            height: 48px;
-            background-color: #59391d;
-            border: 2px solid #211104;
-            margin-bottom: 2px;
-        }
-
-        .resource-metrics {
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            font-size: 8px;
-            line-height: 1.4;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .clock-display {
-            font-size: 8px;
-            color: #731212;
-            text-align: center;
-            padding: 5px;
-            background-color: rgba(0, 0, 0, 0.04);
-            border: 1px dashed #7a502c;
-            margin-bottom: 12px;
-        }
-
-        /* Left Workspace Panel Layout */
+        /* Right Workspace Panel Layout */
         .manuscript-workspace {
             flex: 1;
             height: 100%;
@@ -301,44 +248,11 @@
     </div>
 
     <div class="game-container" id="gameInterface">
-        <div class="right-scroll-panel">
-            <div class="scroll-section">
-                <div class="scroll-title">Profile</div>
-                <div class="player-badge">
-                    <div class="profile-placeholder"></div>
-                    <div>NAME: <span id="hudName">...</span></div>
-                    <div>LVL: <span id="hudLevel">01</span></div>
-                    <div>AGE: <span id="hudAge">1</span></div>
-                    <div>TITLE: <span id="hudRole">GM</span></div>
-                </div>
-            </div>
-
-            <div class="scroll-section">
-                <div class="scroll-title">Chronometer Engine</div>
-                <div class="clock-display">
-                    ⌛ <span id="globalClock">00:00:00 UTC</span>
-                </div>
-                <div class="resource-metrics">
-                    <div class="scroll-title" style="border-bottom: 1px dashed #7a502c; margin-bottom: 8px;">Passive Pools</div>
-                    <div class="metric-row">
-                        <span>ENERGY:</span>
-                        <span><span id="curEnergy">150</span>/<span id="maxEnergy">150</span></span>
-                    </div>
-                    <div class="metric-row" style="margin-bottom: 12px;">
-                        <span>WILLPOWER:</span>
-                        <span><span id="curWill">100</span>/<span id="maxWill">100</span></span>
-                    </div>
-                    <div class="scroll-title" style="border-bottom: 1px dashed #7a502c; margin-bottom: 8px;">Active Profession</div>
-                    <div class="metric-row">
-                        <span>JOB:</span>
-                        <span id="hudJob">UNASSIGNED</span>
-                    </div>
-                    <div class="metric-row">
-                        <span>JOB POINTS:</span>
-                        <span><span id="hudJP">0000</span> JP</span>
-                    </div>
-                </div>
-            </div>
+        <div class="left-scroll-panel">
+            <div>NAME: <span id="hudName">...</span></div>
+            <div>LVL: <span id="hudLevel">01</span></div>
+            <div>AGE: <span id="hudAge">1</span></div>
+            <div>JOB: <span id="hudJob">UNASSIGNED</span></div>
         </div>
 
         <div class="manuscript-workspace">
@@ -375,8 +289,14 @@
             setInterval(() => {
                 const now = new Date();
                 const utcStr = now.toISOString().replace('T', ' ').substring(0, 19) + " UTC";
-                document.getElementById('globalClock').innerText = utcStr;
+                const el = document.getElementById('globalClock');
+                if (el) el.innerText = utcStr;
             }, 1000);
+        }
+
+        function safeSetText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = value;
         }
 
         function renderGameUI(userData) {
@@ -384,16 +304,16 @@
             document.getElementById('authInterface').style.display = 'none';
             document.getElementById('gameInterface').style.display = 'flex';
 
-            document.getElementById('hudName').innerText = userData.email.split('@')[0].toUpperCase();
-            document.getElementById('hudRole').innerText = (userData.role || 'GM').toUpperCase();
-            document.getElementById('hudLevel').innerText = String(userData.level || 1).padStart(2, '0');
-            document.getElementById('hudAge').innerText = userData.age || 1;
-            document.getElementById('curEnergy').innerText = userData.energy || 150;
-            document.getElementById('maxEnergy').innerText = userData.max_energy || 150;
-            document.getElementById('curWill').innerText = userData.willpower || 100;
-            document.getElementById('maxWill').innerText = userData.max_willpower || 100;
-            document.getElementById('hudJob').innerText = (userData.job || 'UNASSIGNED').toUpperCase();
-            document.getElementById('hudJP').innerText = String(userData.job_points || 0).padStart(4, '0');
+            safeSetText('hudName', userData.email.split('@')[0].toUpperCase());
+            safeSetText('hudRole', (userData.role || 'GM').toUpperCase());
+            safeSetText('hudLevel', String(userData.level || 1).padStart(2, '0'));
+            safeSetText('hudAge', userData.age || 1);
+            safeSetText('curEnergy', userData.energy || 150);
+            safeSetText('maxEnergy', userData.max_energy || 150);
+            safeSetText('curWill', userData.willpower || 100);
+            safeSetText('maxWill', userData.max_willpower || 100);
+            safeSetText('hudJob', (userData.job || 'UNASSIGNED').toUpperCase());
+            safeSetText('hudJP', String(userData.job_points || 0).padStart(4, '0'));
 
             initClock();
         }
