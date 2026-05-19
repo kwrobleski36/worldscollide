@@ -149,7 +149,7 @@
             z-index: 10;
         }
 
-        /* Increased asset scale for visibility while maintaining crisp retro rendering rules */
+        /* Target sizing rules tracking your background-dropped asset structure */
         .clock-hourglass-asset {
             width: 24px;
             height: 24px;
@@ -468,14 +468,10 @@
             let originalText = node.innerText;
             if (!originalText) return;
 
-            // Simple regex capture matching data blocks starting with %
             let HTMLHighlightedContent = originalText.replace(/(%[a-zA-Z0-9_]+)/g, '<span class="variable-highlight-token">$1</span>');
-            
-            // To prevent cursor jumping during active typing blocks, safely assign HTML layers
             node.innerHTML = HTMLHighlightedContent;
         }
 
-        // Variable syntax tracking color selector controller
         function toggleVariableHighlighting() {
             highlightVariablesActive = !highlightVariablesActive;
             const btn = document.getElementById('btn-toggle-highlight');
@@ -483,7 +479,7 @@
             if (highlightVariablesActive) {
                 btn.innerText = "HIGHLIGHT VARIABLES: ON";
                 btn.style.background = "#4c8c19";
-                btn.style.borderHeader = "#91f5a5";
+                btn.style.borderColor = "#91f5a5";
             } else {
                 btn.innerText = "HIGHLIGHT VARIABLES: OFF";
                 btn.style.background = "#19588c";
@@ -494,7 +490,7 @@
                 if (highlightVariablesActive && isEditMode) {
                     renderVariableColorHighlights(node);
                 } else {
-                    node.innerText = node.innerText; // Reverts HTML nodes back to clear textual elements
+                    node.innerText = node.innerText; 
                 }
             });
         }
@@ -544,9 +540,29 @@
             }
 
             playerState.name = sanitizedUpperName;
-            // Kevin's account number evaluation points strictly to fixed base 100 tag
-            playerState.accountnumber = "100";
-            playerState.job = "Squire"; 
+            
+            // Auto-Increment Evaluation: Checks existing registrations to find the last counter step
+            const savedState = localStorage.getItem('wc_gm_sidebar_state');
+            let derivedNextId = 100;
+            
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    // Tracks if a pre-existing sequential integer index exists above the base seed
+                    if (parsed.player && parsed.player.accountnumber) {
+                        let parsedId = parseInt(parsed.player.accountnumber);
+                        if (!isNaN(parsedId) && parsedId >= 100 && parsed.player.name !== "???") {
+                            // Increment logic: advances sequentially by +1 step chronologically
+                            derivedNextId = parsedId + 1;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed parsing increment tracking loops:", e);
+                }
+            }
+
+            playerState.accountnumber = String(derivedNextId);
+            playerState.job = "None"; 
 
             printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
             refreshPanelRendering();
@@ -594,7 +610,6 @@
                 
                 textNodes.forEach(node => {
                     node.contentEditable = "true";
-                    // Display layout values un-parsed during creative wizard modifications
                     node.innerText = rawPanelInputCache[node.id] || '';
                     if (highlightVariablesActive) {
                         renderVariableColorHighlights(node);
@@ -620,7 +635,6 @@
                 
                 textNodes.forEach(node => {
                     node.contentEditable = "false";
-                    // Cache the clean text stream safely before entering runtime token parser replacement matches
                     rawPanelInputCache[node.id] = node.innerText;
                 });
 
