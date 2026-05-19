@@ -125,27 +125,27 @@
             display: none;
             padding: 20px;
             gap: 20px;
-            background-color: #05020c;
+            background-color: #000; /* Pure black background matching the landing and core UI context */
             flex-direction: row;
             align-items: flex-start;
         }
 
         /* Left Fixed Scroll Panel Configuration */
         .left-scroll-panel {
-            width: 320px;
-            height: 320px;
-            background-color: #000; /* Forces black canvas behind the alpha transparency channel */
+            width: 290px;
+            height: 340px;
             background-image: url('smallscroll.png');
-            background-size: 100% 100%;
+            background-size: contain; /* Prevents stretching and maintains image proportions */
             background-repeat: no-repeat;
-            padding: 75px 50px 75px 55px; /* Aligns textual strings inside the tan inner boundary */
+            background-position: center;
+            padding: 65px 45px 65px 50px; /* Safe interior bounds layout targeting the parchment */
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             color: #4a3621;
             font-size: 9px;
-            line-height: 1.5;
+            line-height: 1.4;
             flex-shrink: 0;
         }
 
