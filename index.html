@@ -364,7 +364,7 @@
     </div>
 
     <script>
-        // System Character Configuration Registry & State Flags
+        // System Character Configuration Registry & State Flags bound to THIS individual player
         let playerState = {
             name: "???",
             accountnumber: "000000",
@@ -438,7 +438,7 @@
             updateClock();
         }
 
-        // Resolves layout text fields by looking at the active environment state
+        // Resolves layout text fields by looking at the active environment state of THIS individual player
         function refreshPanelRendering() {
             document.querySelectorAll('.scroll-text-entry').forEach(node => {
                 // If actively editing in the UI wizard, process tracking modifications directly on raw inputs
@@ -452,6 +452,7 @@
                 // If locked, swap matching placeholder strings for dynamic configuration markers
                 let targetDataString = rawPanelInputCache[node.id] || '';
                 
+                // Unified string parsing logic swapping custom layouts for THIS player's values
                 let processedView = targetDataString
                     .replace(/%player_name/g, playerState.name)
                     .replace(/%player_accountnumber/g, playerState.accountnumber)
@@ -468,6 +469,7 @@
             let originalText = node.innerText;
             if (!originalText) return;
 
+            // Simple regex capture matching data blocks starting with %
             let HTMLHighlightedContent = originalText.replace(/(%[a-zA-Z0-9_]+)/g, '<span class="variable-highlight-token">$1</span>');
             node.innerHTML = HTMLHighlightedContent;
         }
@@ -548,11 +550,9 @@
             if (savedState) {
                 try {
                     const parsed = JSON.parse(savedState);
-                    // Tracks if a pre-existing sequential integer index exists above the base seed
                     if (parsed.player && parsed.player.accountnumber) {
                         let parsedId = parseInt(parsed.player.accountnumber);
                         if (!isNaN(parsedId) && parsedId >= 100 && parsed.player.name !== "???") {
-                            // Increment logic: advances sequentially by +1 step chronologically
                             derivedNextId = parsedId + 1;
                         }
                     }
@@ -562,7 +562,7 @@
             }
 
             playerState.accountnumber = String(derivedNextId);
-            playerState.job = "None"; 
+            playerState.job = "None"; // Force maps initialization context strictly to None
 
             printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
             refreshPanelRendering();
@@ -765,8 +765,12 @@
                 
                 if (config.player) {
                     playerState = config.player;
-                    if(playerState.name !== "???") {
+                    // Enforces update logic checking existing data configurations
+                    if (playerState.name !== "???" && playerState.name !== "") {
                         document.getElementById('terminal-command-line').setAttribute('disabled', 'true');
+                        // Implicitly structural verification maps old parameters to direct targets on load
+                        playerState.accountnumber = "100";
+                        playerState.job = "None";
                     }
                 }
 
