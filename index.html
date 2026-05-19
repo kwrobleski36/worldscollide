@@ -3,398 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Worlds Collide - Manuscript Workspace</title>
     <style>
-        * {
-            box-sizing: border-box;
+        /* Base Setup & Reset */
+        body, html {
             margin: 0;
             padding: 0;
-            font-family: 'Press Start 2P', monospace;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+            width: 100vw;
+            height: 100vh;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
-        body, html {
+        /* Hard Grid Workspace Layout */
+        .manuscript-workspace {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: 80px 1fr 1fr;
+            grid-template-areas: 
+                "top-scroll top-scroll"
+                "left-top main-viewport"
+                "left-bottom main-viewport";
+            gap: 16px;
+            width: 100vw;
+            height: 100vh;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        /* Scroll Panel Base Containers */
+        .scroll-panel-container {
+            position: relative;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000;
         }
 
-        .background-layer {
+        /* Sliced Asset Background Layer using smallscroll.png */
+        .scroll-background {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('wclonglogo.jpeg');
-            background-size: 100% 100%;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
             z-index: 1;
         }
 
-        /* Authentication UI Box */
-        .auth-container {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            height: 100%;
+        .vertical-scroll {
+            border-image: url('smallscroll.png') 60 20 60 20 fill;
+            border-width: 60px 20px 60px 20px;
+        }
+
+        .horizontal-scroll {
+            border-image: url('smallscroll.png') 20 60 20 60 fill;
+            border-width: 20px 60px 20px 60px;
+        }
+
+        /* Text Wrapping Matrix mapped to safe parchment zones */
+        .scroll-text-wrapper {
+            position: absolute;
+            top: 12%;
+            left: 10%;
+            right: 10%;
+            bottom: 12%;
+            z-index: 2;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            overflow: hidden;
+            transition: top 0.1s ease;
         }
 
-        .login-menu {
-            margin-top: 55vh;
-            width: 380px;
-            background-color: #1a0f2e;
-            border: 4px solid #d4af37;
-            padding: 25px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.85);
-            text-align: center;
-        }
-
-        .menu-title {
-            color: #f2e3c6;
-            font-size: 12px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #f2e3c6;
-            font-size: 8px;
-            cursor: pointer;
-            user-select: none;
-            margin-top: 10px;
-        }
-
-        .checkbox-row input {
-            cursor: pointer;
-            accent-color: #d4af37;
-        }
-
-        .ff-input {
-            width: 100%;
-            padding: 12px;
-            background-color: #000;
-            border: 2px solid #5d4485;
-            color: #fff;
-            font-size: 10px;
-            outline: none;
-            text-align: center;
-        }
-
-        .ff-input::placeholder {
-            color: #5d4485;
-        }
-
-        .ff-input:focus {
-            border-color: #d4af37;
-        }
-
-        .ff-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #3d2466;
-            border: 2px solid #d4af37;
-            color: #fff;
-            font-size: 10px;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        .ff-btn:hover {
-            background-color: #513085;
-        }
-
-        /* Main Game Layout */
-        .game-container {
-            position: relative;
-            z-index: 5;
-            width: 100%;
-            height: 100%;
-            display: none;
-            padding: 20px;
-            gap: 20px;
-            background-color: #000; /* Pure black background matching the landing and core UI context */
-            flex-direction: row;
-            align-items: flex-start;
-        }
-
-        /* Left Fixed Scroll Panel Configuration */
-        .left-scroll-panel {
-            width: 290px;
-            height: 340px;
-            background-image: url('smallscroll.png');
-            background-size: contain; /* Prevents stretching and maintains image proportions */
-            background-repeat: no-repeat;
-            background-position: center;
-            padding: 65px 45px 65px 50px; /* Safe interior bounds layout targeting the parchment */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 16px;
+        /* Enforcing the Final Fantasy VI Monospace Typeface */
+        .scroll-text-entry {
+            font-family: 'final-fantasy-vi', 'Courier New', monospace;
             color: #4a3621;
-            font-size: 9px;
+            font-size: clamp(10px, 2.5cqi, 16px);
+            white-space: pre-wrap;
+            word-break: break-word;
+            outline: none;
             line-height: 1.4;
-            flex-shrink: 0;
         }
 
-        /* Right Workspace Panel Layout */
-        .manuscript-workspace {
-            flex: 1;
-            height: 100%;
-            background-color: #030107;
-            border: 3px solid #d4af37;
-            padding: 20px;
+        /* Highlight editable field while in designer mode */
+        .scroll-text-entry[contenteditable="true"] {
+            background: rgba(245, 218, 145, 0.3);
+            box-shadow: 0 0 4px #4a3621;
+            cursor: text;
+        }
+
+        /* Main Map/Game Viewport Window */
+        .main-viewport {
+            grid-area: main-viewport;
+            border: 2px solid #4a3621;
+            background: rgba(0, 0, 0, 0.4);
             display: flex;
-            flex-direction: column;
-        }
-
-        .workspace-header {
-            border-bottom: 2px solid #d4af37;
-            padding-bottom: 12px;
-            color: #f2e3c6;
-            font-size: 11px;
-            display: flex;
-            gap: 30px;
-            text-transform: uppercase;
-        }
-
-        .workspace-tab {
-            color: #8c72b0;
-            cursor: pointer;
-        }
-
-        .workspace-tab.active {
-            color: #d4af37;
-        }
-
-        .workspace-content {
-            flex: 1;
-            margin-top: 30px;
-            color: #5d4485;
-            font-size: 10px;
-            display: flex;
-            justify-content: center;
             align-items: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            justify-content: center;
+            color: #7a6048;
+            font-family: monospace;
         }
 
-        /* Dialogue Box Overlays */
-        .dialogue-overlay {
+        /* GM Inspector Floating Widget Style */
+        .gm-inspector {
             position: fixed;
-            top: 0;
-            left: 0;
+            bottom: 20px;
+            right: 20px;
+            background: #2e2214;
+            color: #f5da91;
+            padding: 15px;
+            border: 2px solid #f5da91;
+            font-family: monospace;
+            z-index: 9999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .gm-inspector h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .gm-inspector button {
+            background: #f5da91;
+            color: #2e2214;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: bold;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            z-index: 100;
-            display: none;
-            justify-content: center;
-            align-items: center;
+            margin-bottom: 10px;
         }
-
-        .dialogue-frame {
-            width: 340px;
-            background-color: #1a0f2e;
-            border: 4px solid #d4af37;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.9);
+        .gm-inspector label {
+            display: block;
+            font-size: 11px;
+            margin-bottom: 5px;
         }
-
-        .dialogue-text {
-            color: #fff;
-            font-size: 9px;
-            line-height: 1.6;
-            margin-bottom: 20px;
+        .gm-inspector input[type="range"] {
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <div class="background-layer" id="bgLayer"></div>
-
-    <div class="auth-container" id="authInterface">
-        <form id="loginForm" class="login-menu" novalidate>
-            <div id="emailStep">
-                <div class="menu-title">Manuscript Login</div>
-                <div class="form-group">
-                    <input type="email" id="userEmail" class="ff-input" placeholder="player@email.com">
-                </div>
-                <button type="submit" class="ff-btn">Confirm</button>
+    <div id="manuscript-workspace" class="manuscript-workspace">
+        
+        <div id="panel-top-scroll" class="scroll-panel-container" style="grid-area: top-scroll;">
+            <div class="scroll-background horizontal-scroll"></div>
+            <div class="scroll-text-wrapper">
+                <div id="text-top-scroll" class="scroll-text-entry" contenteditable="false">Worlds Collide Campaign - GM Layout Designer Mode</div>
             </div>
-            <div id="tokenStep" style="display: none;">
-                <div class="menu-title">Enter Passcode</div>
-                <div class="form-group">
-                    <input type="text" id="verifyToken" class="ff-input" placeholder="000000" maxlength="6">
-                </div>
-                <div class="form-group checkbox-row">
-                    <input type="checkbox" id="keepLoggedIn" checked>
-                    <label for="keepLoggedIn">Keep me logged in</label>
-                </div>
-                <button type="button" id="btnVerify" class="ff-btn">Verify</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="game-container" id="gameInterface">
-        <div class="left-scroll-panel">
-            <div>NAME: <span id="hudName">...</span></div>
-            <div>LVL: <span id="hudLevel">01</span></div>
-            <div>AGE: <span id="hudAge">1</span></div>
-            <div>JOB: <span id="hudJob">UNASSIGNED</span></div>
         </div>
 
-        <div class="manuscript-workspace">
-            <div class="workspace-header">
-                <span class="workspace-tab active">[ Profile ]</span>
-                <span class="workspace-tab">[ Profession ]</span>
-                <span class="workspace-tab">[ Labors ]</span>
-                <span class="workspace-tab">[ Army ]</span>
+        <div id="panel-left-top" class="scroll-panel-container" style="grid-area: left-top;">
+            <div class="scroll-background vertical-scroll"></div>
+            <div class="scroll-text-wrapper">
+                <div id="text-left-top" class="scroll-text-entry" contenteditable="false">Name: Hero&#10;Level: 1&#10;Job: Squire</div>
             </div>
-            <div class="workspace-content">The Manuscript Workspace</div>
+        </div>
+
+        <div id="panel-left-bottom" class="scroll-panel-container" style="grid-area: left-bottom;">
+            <div class="scroll-background vertical-scroll"></div>
+            <div class="scroll-text-wrapper">
+                <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false">Active Quest:&#10;Clear the Forest Floor</div>
+            </div>
+        </div>
+
+        <div class="main-viewport">
+            [Main Screen Viewport Content Engine]
         </div>
     </div>
 
-    <div class="dialogue-overlay" id="dialogueBox">
-        <div class="dialogue-frame">
-            <div class="dialogue-text" id="dialogueMsg">Message</div>
-            <button type="button" class="ff-btn" id="dialogueDismiss">Dismiss</button>
+    <div id="gm-inspector-panel" class="gm-inspector">
+        <h3>Designer Panel</h3>
+        <button id="btn-toggle-edit" onclick="toggleEditMode()">Toggle Edit Mode</button>
+        <hr style="border-color: #4a3621;">
+        <div>
+            <label>Vertical Position Offset (%):</label>
+            <input type="range" id="text-offset-slider" min="5" max="75" value="12" oninput="adjustTextPosition(this.value)" disabled>
         </div>
     </div>
 
     <script>
-        let currentEmail = '';
+        let isEditMode = false;
+        let activeTargetTextNode = null;
 
-        function showMessage(text) {
-            document.getElementById('dialogueMsg').innerText = text;
-            document.getElementById('dialogueBox').style.display = 'flex';
-        }
-
-        document.getElementById('dialogueDismiss').addEventListener('click', () => {
-            document.getElementById('dialogueBox').style.display = 'none';
-        });
-
-        function initClock() {
-            setInterval(() => {
-                const now = new Date();
-                const utcStr = now.toISOString().replace('T', ' ').substring(0, 19) + " UTC";
-                const el = document.getElementById('globalClock');
-                if (el) el.innerText = utcStr;
-            }, 1000);
-        }
-
-        function safeSetText(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = value;
-        }
-
-        function renderGameUI(userData) {
-            document.getElementById('bgLayer').style.display = 'none';
-            document.getElementById('authInterface').style.display = 'none';
-            document.getElementById('gameInterface').style.display = 'flex';
-
-            safeSetText('hudName', userData.email.split('@')[0].toUpperCase());
-            safeSetText('hudRole', (userData.role || 'GM').toUpperCase());
-            safeSetText('hudLevel', String(userData.level || 1).padStart(2, '0'));
-            safeSetText('hudAge', userData.age || 1);
-            safeSetText('curEnergy', userData.energy || 150);
-            safeSetText('maxEnergy', userData.max_energy || 150);
-            safeSetText('curWill', userData.willpower || 100);
-            safeSetText('maxWill', userData.max_willpower || 100);
-            safeSetText('hudJob', (userData.job || 'UNASSIGNED').toUpperCase());
-            safeSetText('hudJP', String(userData.job_points || 0).padStart(4, '0'));
-
-            initClock();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const cachedSession = localStorage.getItem('wc_active_session');
-            if (cachedSession) {
-                try {
-                    const parsedData = JSON.parse(cachedSession);
-                    if (parsedData && parsedData.email) {
-                        renderGameUI(parsedData);
-                    }
-                } catch (e) {
-                    localStorage.removeItem('wc_active_session');
-                }
-            }
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const emailInput = document.getElementById('userEmail').value.trim();
-
-            if (!emailInput) {
-                showMessage("Please enter an e-mail address");
-                return;
-            }
-
-            currentEmail = emailInput;
-
-            try {
-                const response = await fetch('/api/request-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentEmail })
+        // Toggles interactive text modifications and element selections
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const textNodes = document.querySelectorAll('.scroll-text-entry');
+            const toggleButton = document.getElementById('btn-toggle-edit');
+            const positionSlider = document.getElementById('text-offset-slider');
+            
+            if (isEditMode) {
+                toggleButton.innerText = "Lock Layout & Save";
+                toggleButton.style.background = "#8c2d19";
+                toggleButton.style.color = "#ffffff";
+                positionSlider.removeAttribute('disabled');
+                
+                textNodes.forEach(node => {
+                    node.contentEditable = "true";
+                    node.onclick = (e) => {
+                        activeTargetTextNode = e.target;
+                        // Synchronize slider track position to match the selected zone
+                        const currentTop = e.target.parentElement.style.top || "12%";
+                        positionSlider.value = parseInt(currentTop);
+                    };
+                });
+            } else {
+                toggleButton.innerText = "Toggle Edit Mode";
+                toggleButton.style.background = "#f5da91";
+                toggleButton.style.color = "#2e2214";
+                positionSlider.setAttribute('disabled', 'true');
+                
+                textNodes.forEach(node => {
+                    node.contentEditable = "false";
+                    node.onclick = null;
                 });
 
-                if (!response.ok) {
-                    throw new Error("Server communication fault");
-                }
-
-                document.getElementById('emailStep').style.display = 'none';
-                document.getElementById('tokenStep').style.display = 'block';
-            } catch (err) {
-                showMessage("Connection failed");
+                activeTargetTextNode = null;
+                saveLayoutConfiguration();
             }
-        });
+        }
 
-        document.getElementById('btnVerify').addEventListener('click', async () => {
-            const tokenInput = document.getElementById('verifyToken').value.trim();
-            const keepLogged = document.getElementById('keepLoggedIn').checked;
-
-            if (!tokenInput) {
-                showMessage("Please enter verification token");
-                return;
+        // Moves the wrapper containing the editable text relative to the background slice
+        function adjustTextPosition(value) {
+            if (activeTargetTextNode && isEditMode) {
+                activeTargetTextNode.parentElement.style.top = value + "%";
             }
+        }
 
-            try {
-                const response = await fetch('/api/verify-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentEmail, code: tokenInput })
+        // Serializes state data to sync with your Cloudflare D1 environment matrix
+        function saveLayoutConfiguration() {
+            const layoutConfig = {
+                layout_version: "production_manuscript_v1",
+                timestamp: new Date().toISOString(),
+                panels: []
+            };
+
+            document.querySelectorAll('.scroll-panel-container').forEach(panel => {
+                const textEntry = panel.querySelector('.scroll-text-entry');
+                const wrapper = panel.querySelector('.scroll-text-wrapper');
+                
+                layoutConfig.panels.push({
+                    panel_dom_id: panel.id,
+                    inner_html: textEntry.innerHTML,
+                    top_percentage_offset: wrapper.style.top || "12%"
                 });
+            });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    showMessage(data.error || "Verification failed");
-                    return;
-                }
-
-                if (keepLogged && data.user) {
-                    localStorage.setItem('wc_active_session', JSON.stringify(data.user));
-                }
-
-                renderGameUI(data.user);
-            } catch (err) {
-                showMessage("Connection failed");
-            }
-        });
+            console.log("Layout State JSON compiled for Cloudflare D1 Sync:", JSON.stringify(layoutConfig, null, 2));
+            // Trigger your custom app fetch call here to pass layoutConfig to your API worker endpoint
+        }
     </script>
 </body>
 </html>
