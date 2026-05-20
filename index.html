@@ -1,807 +1,122 @@
-<!DOCTYPE html>
+<script>
+    let playerState = {};
+
+    async function loadGameState() {
+        // Fetch server-side status (Age, Name, Account)
+        const res = await fetch('/api/get-status');
+        playerState = await res.json();
+        
+        // Fetch server-side layout
+        const layoutRes = await fetch('/api/get-layout');
+        const layout = await layoutRes.json();
+        applyLayout(layout);
+        
+        refreshPanelRendering();
+    }
+
+    async function saveGMChanges(layoutData) {
+        await fetch('/api/save-layout', {
+            method: 'POST',
+            body: JSON.stringify({ gmId: 'admin', layoutData })
+        });
+    }
+
+    // Replace your old window.onload with this
+    window.addEventListener('DOMContentLoaded', loadGameState);
+</script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds Collide - GM Persistent Workspace</title>
+    <title>Worlds Collide - Server-Authoritative Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Base Setup & Reset */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            overflow: hidden;
-            box-sizing: border-box;
-            font-family: 'Press Start 2P', monospace;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-
-        /* Flexbox Sidebar Layout Engine preventing squishing errors */
-        .manuscript-workspace {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
-            padding: 12px;
-            box-sizing: border-box;
-            gap: 16px;
-        }
-
-        .sidebar-container {
-            display: flex;
-            flex-direction: column;
-            width: var(--sidebar-width, 320px);
-            height: 100%;
-            position: relative;
-        }
-
-        .scroll-panel-container {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            /* Typographic style variable overrides managed natively via JS script injections */
-            --font-weight: normal;
-            --font-color: #ffffff;
-            --font-outline: none;
-        }
-
-        #panel-left-top {
-            height: var(--top-panel-height, 300px);
-            min-height: 120px;
-        }
-
-        #panel-left-bottom {
-            flex-grow: 1;
-            min-height: 120px;
-        }
-
-        /* Sliced Asset Background Layer targeting the current black-filled asset format */
-        .scroll-background {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-            z-index: 1;
-            border-image: url('smallscroll.png') 60 20 60 20 fill;
-            border-width: 60px 20px 60px 20px;
-        }
-
-        .scroll-text-wrapper {
-            position: absolute;
-            top: var(--text-y-offset, 15%);
-            left: 14%;
-            right: 14%;
-            bottom: 15%;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .scroll-text-entry {
-            font-family: 'Press Start 2P', monospace;
-            color: var(--font-color);
-            font-weight: var(--font-weight);
-            text-shadow: var(--font-outline);
-            font-size: clamp(8px, 1.8cqi, 12px);
-            white-space: pre-wrap;
-            word-break: break-word;
-            outline: none;
-            line-height: 1.6;
-        }
-
-        /* Syntax Color highlight class context for variables */
-        .variable-highlight-token {
-            color: #f5da91 !important;
-            text-shadow: 0px 0px 4px rgba(245, 218, 145, 0.8) !important;
-        }
-
-        /* Mouse Drag Resize Intermediary Component overlaying layout margins */
-        .resize-handle-bar {
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 100%;
-            height: 16px;
-            z-index: 999;
-            cursor: row-resize;
-            display: none;
-        }
-
-        /* Active editing states highlighting canvas boxes */
-        .manuscript-workspace.edit-active .resize-handle-bar {
-            display: block;
-        }
-
-        .manuscript-workspace.edit-active .scroll-panel-container {
-            outline: 2px dashed #4a3621;
-        }
-
-        .manuscript-workspace.edit-active .scroll-panel-container.selected-target {
-            outline: 2px solid #f5da91;
-        }
-
-        /* Master Game Monitor Context Layer */
-        .main-viewport {
-            flex-grow: 1;
-            border: 4px double #4a3621;
-            background: rgba(20, 20, 20, 0.8);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            color: #7a6048;
-            box-sizing: border-box;
-        }
-
-        /* Real-Time UTC Clock Component Container */
-        .clock-container {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #f5da91;
-            font-size: 10px;
-            letter-spacing: 1px;
-            z-index: 10;
-        }
-
-        /* Target sizing rules tracking your background-dropped asset structure */
-        .clock-hourglass-asset {
-            width: 24px;
-            height: 24px;
-            display: inline-block;
-            vertical-align: middle;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-
-        /* Centered Testing Matrix Text */
-        .viewport-test-text {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-
-        /* DOS Terminal Console Base Framework Styles */
-        .terminal-console-panel {
-            width: 100%;
-            height: 180px;
-            background: #000000;
-            border-top: 4px double #4a3621;
-            padding: 12px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            font-family: 'Press Start 2P', monospace;
-            z-index: 5;
-        }
-
-        .terminal-log-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            color: #aaaaaa;
-            font-size: 9px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .terminal-log-line {
-            margin-bottom: 4px;
-        }
-
-        .terminal-log-line.system-prompt {
-            color: #f5da91;
-        }
-
-        .terminal-log-line.error-response {
-            color: #8c2d19;
-        }
-
-        .terminal-log-line.success-response {
-            color: #4c8c19;
-        }
-
-        .terminal-input-row {
-            display: flex;
-            align-items: center;
-            color: #ffffff;
-            font-size: 10px;
-        }
-
-        .terminal-cursor {
-            color: #f5da91;
-            margin-right: 8px;
-            user-select: none;
-        }
-
-        .terminal-input-field {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #ffffff;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            padding: 0;
-            margin: 0;
-        }
-
-        /* GM Calibration Widget Styling Context */
-        .gm-inspector {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #111;
-            color: #f5da91;
-            padding: 15px;
-            border: 2px solid #4a3621;
-            z-index: 9999;
-            width: 300px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
-        }
-        .gm-inspector h3 {
-            margin: 0 0 10px 0;
-            font-size: 9px;
-            text-transform: uppercase;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-        .gm-inspector button {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
-            background: #4a3621;
-            color: #f5da91;
-            border: 1px solid #f5da91;
-            padding: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        .control-group { margin-bottom: 10px; }
-        .gm-inspector label { display: block; font-size: 7px; margin-bottom: 4px; }
-        .gm-inspector input[type="range"], .gm-inspector input[type="color"] {
-            width: 100%;
-            background: #000;
-            color: #f5da91;
-            border: 1px solid #4a3621;
-            box-sizing: border-box;
-        }
-        .checkbox-row { display: flex; align-items: center; gap: 8px; }
-        .checkbox-row input { width: auto !important; }
-
-        /* Master visibility override utility class to safely vanish inspector modules */
-        .ui-hidden {
-            display: none !important;
-        }
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #000; overflow: hidden; font-family: 'Press Start 2P', monospace; }
+        .manuscript-workspace { display: flex; width: 100vw; height: 100vh; padding: 12px; box-sizing: border-box; gap: 16px; }
+        .sidebar-container { display: flex; flex-direction: column; width: 320px; height: 100%; position: relative; }
+        .scroll-panel-container { position: relative; width: 100%; overflow: hidden; }
+        #panel-left-top { height: 300px; }
+        #panel-left-bottom { flex-grow: 1; }
+        .scroll-background { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; border-image: url('smallscroll.png') 60 20 60 20 fill; border-width: 60px 20px 60px 20px; }
+        .scroll-text-wrapper { position: absolute; top: 15%; left: 14%; right: 14%; bottom: 15%; z-index: 2; }
+        .scroll-text-entry { font-family: 'Press Start 2P', monospace; color: #4a3621; font-size: 10px; white-space: pre-wrap; }
+        .main-viewport { flex-grow: 1; border: 4px double #4a3621; background: rgba(20, 20, 20, 0.8); display: flex; flex-direction: column; position: relative; }
+        .terminal-console-panel { width: 100%; height: 180px; background: #000; border-top: 4px double #4a3621; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .terminal-log-area { flex-grow: 1; overflow-y: auto; color: #aaa; font-size: 9px; }
+        .terminal-input-row { display: flex; align-items: center; color: #fff; font-size: 10px; }
+        .terminal-input-field { flex-grow: 1; background: transparent; border: none; outline: none; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="manuscript-workspace" class="manuscript-workspace">
+    <div class="manuscript-workspace">
         <div class="sidebar-container">
-            
-            <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
+            <div id="panel-left-top" class="scroll-panel-container">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-top" class="scroll-text-entry" contenteditable="false"></div>
+                    <div id="text-left-top" class="scroll-text-entry"></div>
                 </div>
-                <div class="resize-handle-bar" id="drag-handle"></div>
             </div>
-
-            <div style="height: 16px; min-height: 16px; pointer-events: none;"></div>
-
-            <div id="panel-left-bottom" class="scroll-panel-container" onclick="focusElement(this, event)">
+            <div style="height: 16px;"></div>
+            <div id="panel-left-bottom" class="scroll-panel-container">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
-                    <div id="text-left-bottom" class="scroll-text-entry" contenteditable="false"></div>
+                    <div id="text-left-bottom" class="scroll-text-entry"></div>
                 </div>
             </div>
         </div>
 
         <div class="main-viewport">
-            <div class="clock-container">
-                <img src="hourglassremove.png" class="clock-hourglass-asset" alt="">
-                <span id="utc-clock-display">00:00:00 UTC</span>
-            </div>
-
-            <div class="viewport-test-text">
-                [VIEWPORT RENDER CANVAS - TESTING AREA ACTIVE]
-            </div>
-
             <div class="terminal-console-panel">
                 <div class="terminal-log-area" id="terminal-log-output"></div>
                 <div class="terminal-input-row">
-                    <span class="terminal-cursor">&gt;</span>
+                    <span>&gt;</span>
                     <input type="text" id="terminal-command-line" class="terminal-input-field" autocomplete="off" autofocus>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="gm-inspector-panel" class="gm-inspector">
-        <h3>UI WIZARD DESIGNER</h3>
-        <button id="btn-toggle-edit" onclick="toggleDesignerMode()">TOGGLE DESIGNER</button>
-        <button id="btn-toggle-highlight" onclick="toggleVariableHighlighting()" style="background: #19588c; border-color: #91bbf5;">HIGHLIGHT VARIABLES: OFF</button>
-        <button id="btn-hide-ui" onclick="toggleInspectorVisibility()" style="background: #2e2214;">HIDE CONTROL DECK</button>
-        
-        <div class="control-group">
-            <label>SIDEBAR WIDTH (PX):</label>
-            <input type="range" id="slide-width" min="200" max="500" value="320" oninput="adjustWidth(this.value)" disabled>
-        </div>
-
-        <hr style="border-color: #4a3621; margin: 12px 0;">
-        <h3>FONT STYLE STUDIO</h3>
-        
-        <div class="control-group">
-            <label>TEXT LINE OFFSET (%):</label>
-            <input type="range" id="text-offset-slider" min="5" max="65" value="15" oninput="applyTypographyStyle('offset', this.value)" disabled>
-        </div>
-        <div class="control-group">
-            <label>FONT COLOR:</label>
-            <input type="color" id="font-color-picker" value="#ffffff" oninput="applyTypographyStyle('color', this.value)" disabled>
-        </div>
-        <div class="control-group checkbox-row">
-            <input type="checkbox" id="font-bold-check" onchange="applyTypographyStyle('bold', this.checked)" disabled>
-            <label for="font-bold-check" style="margin: 0;">BOLDFACE TYPE</label>
-        </div>
-        <div class="control-group checkbox-row">
-            <input type="checkbox" id="font-outline-check" onchange="applyTypographyStyle('outline', this.checked)" disabled>
-            <label for="font-outline-check" style="margin: 0;">BLACK OUTLINE</label>
-        </div>
-    </div>
-
     <script>
-        // System Character Configuration Registry & Isolated State Flags bound to THIS individual player instance
-        let playerState = {
-            name: "???",
-            accountnumber: "000000",
-            level: 1, 
-            age: 1, 
-            job: "None" 
-        };
+        let playerState = { name: "...", account: "...", level: "...", age: "...", job: "..." };
 
-        // Cache objects for storing raw user input configurations before replacement loops execute
-        let rawPanelInputCache = {
-            'text-left-top': '',
-            'text-left-bottom': ''
-        };
-
-        let initialCreationTimestamp = null;
-        let isEditMode = false;
-        let highlightVariablesActive = false;
-        let activeTargetPanel = null;
-        let isDragging = false;
-        
-        const workspace = document.getElementById('manuscript-workspace');
-        const topPanel = document.getElementById('panel-left-top');
-        const dragHandle = document.getElementById('drag-handle');
-        const terminalLog = document.getElementById('terminal-log-output');
-        const terminalInput = document.getElementById('terminal-command-line');
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initializeChronologyTracker();
-            loadSavedConfiguration();
-            refreshPanelRendering();
-            initializeFirstTimeLoginSequence();
-        });
-
-        // Serverless Controlled Ticker Loop pulling authorization timestamps
-        function initializeChronologyTracker() {
-            const savedState = localStorage.getItem('wc_gm_sidebar_state');
-            if (savedState) {
-                try {
-                    const parsed = JSON.parse(savedState);
-                    if (parsed.initialCreationTimestamp) {
-                        initialCreationTimestamp = parseInt(parsed.initialCreationTimestamp);
-                    }
-                } catch (e) {
-                    console.error("Failed parsing initialization timestamps:", e);
-                }
-            }
-
-            if (!initialCreationTimestamp) {
-                initialCreationTimestamp = Date.now();
-            }
-            
-            function updateClock() {
-                const now = new Date();
-                const hours = String(now.getUTCHours()).padStart(2, '0');
-                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-                document.getElementById('utc-clock-display').innerText = `${hours}:${minutes}:${seconds} UTC`;
-
-                // Unstoppable Age Logic: tracks exact server date roll overs relative to setup epoch
-                const elapsedDays = Math.floor((Date.now() - initialCreationTimestamp) / 86400000);
-                const currentAgeCalculation = 1 + elapsedDays;
-
-                if (currentAgeCalculation !== playerState.age) {
-                    playerState.age = currentAgeCalculation;
-                    refreshPanelRendering();
-                    saveConfigurationToStorage();
-                }
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
-        }
-
-        // Live Dynamic String Replacement parsing global template keys
-        function refreshPanelRendering() {
-            document.querySelectorAll('.scroll-text-entry').forEach(node => {
-                if (isEditMode) {
-                    if (highlightVariablesActive) {
-                        renderVariableColorHighlights(node);
-                    }
-                    return;
-                }
-
-                let targetDataString = rawPanelInputCache[node.id] || '';
-                
-                let processedView = targetDataString
-                    .replace(/%player_name/g, playerState.name)
-                    .replace(/%player_accountnumber/g, playerState.accountnumber)
-                    .replace(/%player_level/g, playerState.level)
-                    .replace(/%player_age/g, playerState.age)
-                    .replace(/%player_job/g, playerState.job);
-
-                node.innerText = processedView;
-            });
-        }
-
-        function renderVariableColorHighlights(node) {
-            let originalText = node.innerText;
-            if (!originalText) return;
-
-            let HTMLHighlightedContent = originalText.replace(/(%[a-zA-Z0-9_]+)/g, '<span class="variable-highlight-token">$1</span>');
-            node.innerHTML = HTMLHighlightedContent;
-        }
-
-        function toggleVariableHighlighting() {
-            highlightVariablesActive = !highlightVariablesActive;
-            const btn = document.getElementById('btn-toggle-highlight');
-            
-            if (highlightVariablesActive) {
-                btn.innerText = "HIGHLIGHT VARIABLES: ON";
-                btn.style.background = "#4c8c19";
-                btn.style.borderColor = "#91f5a5";
-            } else {
-                btn.innerText = "HIGHLIGHT VARIABLES: OFF";
-                btn.style.background = "#19588c";
-                btn.style.borderColor = "#91bbf5";
-            }
-            
-            document.querySelectorAll('.scroll-text-entry').forEach(node => {
-                if (highlightVariablesActive && isEditMode) {
-                    renderVariableColorHighlights(node);
-                } else {
-                    node.innerText = node.innerText; 
-                }
-            });
-        }
-
-        function initializeFirstTimeLoginSequence() {
-            // Force reset DOM parameters on boot handshakes to remove false positive lockouts
-            terminalInput.removeAttribute('disabled');
-            terminalInput.value = '';
-            
-            printTerminalLine('Please select a name ...', 'system-prompt'); 
-            
-            terminalInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    const submissionValue = terminalInput.value.trim();
-                    terminalInput.value = '';
-
-                    // Blank inputs completely bypassed without transaction logs
-                    if (submissionValue === '') return;
-
-                    dispatchServerSideValidation(submissionValue);
-                }
-            });
-            
-            document.querySelector('.terminal-console-panel').addEventListener('click', () => {
-                if (!terminalInput.hasAttribute('disabled')) {
-                    terminalInput.focus();
-                }
-            });
-
-            setTimeout(() => { terminalInput.focus(); }, 50);
-        }
-
-        function printTerminalLine(text, styleClass = '') {
-            const lineNode = document.createElement('div');
-            lineNode.className = `terminal-log-line ${styleClass}`;
-            lineNode.innerText = text;
-            terminalLog.appendChild(lineNode);
-            terminalLog.scrollTop = terminalLog.scrollHeight;
-        }
-
-        // Authoritative API Communication Flow: intercepts reverse engineering vectors entirely
-        async function dispatchServerSideValidation(nameInput) {
-            printTerminalLine(`> ${nameInput}`);
-
+        // Authoritative Server Handshake: Client only mirrors what the D1 database returns
+        async function loadGameState() {
             try {
-                const response = await fetch('/api/character-setup', {
+                const statusRes = await fetch('/api/get-status');
+                if (statusRes.ok) {
+                    playerState = await statusRes.json();
+                    refreshUI();
+                }
+            } catch (e) { console.error("Server connection required."); }
+        }
+
+        function refreshUI() {
+            document.getElementById('text-left-top').innerText = 
+                `Name: ${playerState.name} (${playerState.account})\nLevel: ${playerState.level}\nAge: ${playerState.age}\nJob: ${playerState.job}`;
+        }
+
+        // Console Submission: Routes intent to secure Cloudflare edge handler
+        document.getElementById('terminal-command-line').addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                e.target.value = '';
+                
+                const res = await fetch('/api/character-setup', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: nameInput,
-                        userId: "live_active_user_passkey_token" 
-                    })
+                    body: JSON.stringify({ name: input, userId: 'session_id' })
                 });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    printTerminalLine(data.error || "Error: Transaction Rejected.", "error-response");
-                    return;
-                }
-
-                // Hydrate runtime interface nodes with structural data verified straight from D1
-                playerState.name = data.player_name;
-                playerState.accountnumber = data.player_accountnumber;
-                playerState.level = data.player_level;
-                playerState.age = data.player_age;
-                playerState.job = data.player_job;
-
-                printTerminalLine(`Name "${data.player_name}" registered. Initializing record...`, 'success-response');
-                refreshPanelRendering();
                 
-                terminalInput.setAttribute('disabled', 'true');
-                terminalInput.blur();
-                saveConfigurationToStorage();
-
-            } catch (err) {
-                printTerminalLine("Error: Gateway Connection Interrupted.", "error-response");
+                const result = await res.json();
+                if (result.success) {
+                    loadGameState(); // Re-sync state from authoritative server source
+                } else {
+                    document.getElementById('terminal-log-output').innerText += `\nError: ${result.error}`;
+                }
             }
-        }
-
-        dragHandle.addEventListener('mousedown', function(e) {
-            if (!isEditMode) return;
-            e.preventDefault();
-            isDragging = true;
-            document.addEventListener('mousemove', handleVerticalStretch);
-            document.addEventListener('mouseup', stopVerticalStretch);
         });
 
-        function handleVerticalStretch(e) {
-            if (!isDragging) return;
-            const topPanelRect = topPanel.getBoundingClientRect();
-            const computedHeight = e.clientY - topPanelRect.top;
-            
-            if (computedHeight >= 120 && computedHeight <= window.innerHeight - 200) {
-                workspace.style.setProperty('--top-panel-height', `${computedHeight}px`);
-            }
-        }
-
-        function stopVerticalStretch() {
-            isDragging = false;
-            document.removeEventListener('mousemove', handleVerticalStretch);
-            document.removeEventListener('mouseup', stopVerticalStretch);
-        }
-
-        function toggleDesignerMode() {
-            isEditMode = !isEditMode;
-            const textNodes = document.querySelectorAll('.scroll-text-entry');
-            const toggleButton = document.getElementById('btn-toggle-edit');
-            
-            if (isEditMode) {
-                workspace.classList.add('edit-active');
-                toggleButton.innerText = "LOCK GRID SECTOR";
-                toggleButton.style.background = "#8c2d19";
-                toggleButton.style.color = "#ffffff";
-                document.getElementById('slide-width').removeAttribute('disabled');
-                
-                textNodes.forEach(node => {
-                    node.contentEditable = "true";
-                    node.innerText = rawPanelInputCache[node.id] || '';
-                    if (highlightVariablesActive) {
-                        renderVariableColorHighlights(node);
-                    }
-                });
-            } else {
-                workspace.classList.remove('edit-active');
-                toggleButton.innerText = "TOGGLE DESIGNER";
-                toggleButton.style.background = "#4a3621";
-                toggleButton.style.color = "#f5da91";
-                
-                if (activeTargetPanel) {
-                    activeTargetPanel.classList.remove('selected-target');
-                    activeTargetPanel = null;
-                }
-                
-                const styleControls = ['slide-width', 'text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
-                styleControls.forEach(id => {
-                    const el = document.getElementById(id);
-                    el.setAttribute('disabled', 'true');
-                    if (el.type === 'checkbox') el.checked = false;
-                });
-                
-                textNodes.forEach(node => {
-                    node.contentEditable = "false";
-                    rawPanelInputCache[node.id] = node.innerText;
-                });
-
-                refreshPanelRendering();
-                saveConfigurationToStorage();
-            }
-        }
-
-        function toggleInspectorVisibility() {
-            const panel = document.getElementById('gm-inspector-panel');
-            panel.classList.add('ui-hidden');
-            
-            if (isEditMode) toggleDesignerMode();
-
-            let restoreBtn = document.getElementById('btn-restore-deck');
-            if (!restoreBtn) {
-                restoreBtn = document.createElement('button');
-                restoreBtn.id = 'btn-restore-deck';
-                restoreBtn.innerText = " + DECK ";
-                restoreBtn.style.position = 'fixed';
-                restoreBtn.style.bottom = '10px';
-                restoreBtn.style.right = '10px';
-                restoreBtn.style.zIndex = '99999';
-                restoreBtn.style.fontFamily = "'Press Start 2P', monospace";
-                restoreBtn.style.fontSize = '8px';
-                restoreBtn.style.background = '#111';
-                restoreBtn.style.color = '#f5da91';
-                restoreBtn.style.border = '1px dashed #4a3621';
-                restoreBtn.style.padding = '6px';
-                restoreBtn.style.cursor = 'pointer';
-                restoreBtn.onclick = function() {
-                    panel.classList.remove('ui-hidden');
-                    restoreBtn.classList.add('ui-hidden');
-                };
-                document.body.appendChild(restoreBtn);
-            } else {
-                restoreBtn.classList.remove('ui-hidden');
-            }
-        }
-
-        function adjustWidth(value) {
-            if (isEditMode) workspace.style.setProperty('--sidebar-width', `${value}px`);
-        }
-
-        function focusElement(element, event) {
-            if (!isEditMode || event.target === dragHandle) return;
-            event.stopPropagation();
-
-            if (activeTargetPanel) activeTargetPanel.classList.remove('selected-target');
-            activeTargetPanel = element;
-            activeTargetPanel.classList.add('selected-target');
-
-            const typographyFields = ['text-offset-slider', 'font-color-picker', 'font-bold-check', 'font-outline-check'];
-            typographyFields.forEach(id => document.getElementById(id).removeAttribute('disabled'));
-
-            const wrapper = element.querySelector('.scroll-text-wrapper');
-            const currentOffset = parseInt(window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15");
-            document.getElementById('text-offset-slider').value = currentOffset;
-
-            const currentColor = window.getComputedStyle(element).getPropertyValue('--font-color').trim() || "#ffffff";
-            document.getElementById('font-color-picker').value = rgbToHex(currentColor);
-
-            const currentWeight = window.getComputedStyle(element).getPropertyValue('--font-weight').trim();
-            document.getElementById('font-bold-check').checked = (currentWeight === 'bold');
-
-            const currentOutline = window.getComputedStyle(element).getPropertyValue('--font-outline').trim();
-            document.getElementById('font-outline-check').checked = (currentOutline !== 'none' && currentOutline !== '');
-        }
-
-        function applyTypographyStyle(property, value) {
-            if (!activeTargetPanel || !isEditMode) return;
-            const wrapper = activeTargetPanel.querySelector('.scroll-text-wrapper');
-
-            if (property === 'offset') {
-                wrapper.style.setProperty('--text-y-offset', `${value}%`);
-            } else if (property === 'color') {
-                activeTargetPanel.style.setProperty('--font-color', value);
-            } else if (property === 'bold') {
-                activeTargetPanel.style.setProperty('--font-weight', value ? 'bold' : 'normal');
-            } else if (property === 'outline') {
-                const outlineString = value ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none';
-                activeTargetPanel.style.setProperty('--font-outline', outlineString);
-            }
-        }
-
-        function rgbToHex(rgb) {
-            if (rgb.startsWith('#')) return rgb;
-            const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-            if (!match) return "#ffffff";
-            return "#" + [match[1], match[2], match[3]].map(x => {
-                const hex = parseInt(x).toString(16);
-                return hex.length === 1 ? "0" + hex : hex;
-            }).join('');
-        }
-
-        function saveConfigurationToStorage() {
-            const layoutState = {
-                sidebar_width: window.getComputedStyle(workspace).getPropertyValue('--sidebar-width') || "320px",
-                top_panel_height: window.getComputedStyle(topPanel).height,
-                player: playerState,
-                initialCreationTimestamp: initialCreationTimestamp,
-                rawPanelInputCache: rawPanelInputCache,
-                panels: {}
-            };
-
-            document.querySelectorAll('.scroll-panel-container').forEach(panel => {
-                const wrapper = panel.querySelector('.scroll-text-wrapper');
-                layoutState.panels[panel.id] = {
-                    offset: window.getComputedStyle(wrapper).getPropertyValue('--text-y-offset') || "15%",
-                    color: window.getComputedStyle(panel).getPropertyValue('--font-color') || "#ffffff",
-                    weight: window.getComputedStyle(panel).getPropertyValue('--font-weight') || "normal",
-                    outline: window.getComputedStyle(panel).getPropertyValue('--font-outline') || "none"
-                };
-            });
-
-            localStorage.setItem('wc_gm_sidebar_state', JSON.stringify(layoutState));
-        }
-
-        function loadSavedConfiguration() {
-            const rawData = localStorage.getItem('wc_gm_sidebar_state');
-            if (!rawData) {
-                playerState.name = "???";
-                terminalInput.removeAttribute('disabled');
-                return;
-            }
-
-            try {
-                const config = JSON.parse(rawData);
-                workspace.style.setProperty('--sidebar-width', config.sidebar_width);
-                workspace.style.setProperty('--top-panel-height', config.top_panel_height);
-                document.getElementById('slide-width').value = parseInt(config.sidebar_width);
-                
-                if (config.player) {
-                    playerState = config.player;
-                    
-                    // Authoritative State Evaluation: Force input text functionalities active if profile string is blank/empty
-                    if (playerState.name !== "???" && playerState.name !== "") {
-                        terminalInput.setAttribute('disabled', 'true');
-                        // Implicit override tracking: auto assigns fixed production keys on verification load splits
-                        playerState.accountnumber = "100"; 
-                        playerState.job = "None"; 
-                    } else {
-                        terminalInput.removeAttribute('disabled');
-                    }
-                } else {
-                    playerState.name = "???";
-                    terminalInput.removeAttribute('disabled');
-                }
-
-                if (config.initialCreationTimestamp) {
-                    initialCreationTimestamp = parseInt(config.initialCreationTimestamp);
-                }
-
-                if (config.rawPanelInputCache) {
-                    rawPanelInputCache = config.rawPanelInputCache;
-                }
-
-                Object.keys(config.panels).forEach(id => {
-                    const panel = document.getElementById(id);
-                    if (!panel) return;
-                    
-                    const item = config.panels[id];
-                    panel.querySelector('.scroll-text-wrapper').style.setProperty('--text-y-offset', item.offset);
-                    panel.style.setProperty('--font-color', item.color);
-                    panel.style.setProperty('--font-weight', item.weight);
-                    panel.style.setProperty('--font-outline', item.outline);
-                });
-            } catch (e) {
-                console.error("Configuration tracking load delta failed:", e);
-                playerState.name = "???";
-                terminalInput.removeAttribute('disabled');
-            }
-        }
+        window.addEventListener('DOMContentLoaded', loadGameState);
     </script>
 </body>
 </html>
