@@ -42,6 +42,7 @@
             position: relative;
             width: 100%;
             overflow: hidden;
+            /* Typographic style variable overrides managed natively via JS script injections */
             --font-weight: normal;
             --font-color: #ffffff;
             --font-outline: none;
@@ -57,6 +58,7 @@
             min-height: 120px;
         }
 
+        /* Sliced Asset Background Layer targeting the current black-filled asset format */
         .scroll-background {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -90,11 +92,13 @@
             line-height: 1.6;
         }
 
+        /* Syntax Color highlight class context for variables */
         .variable-highlight-token {
             color: #f5da91 !important;
             text-shadow: 0px 0px 4px rgba(245, 218, 145, 0.8) !important;
         }
 
+        /* Mouse Drag Resize Intermediary Component overlaying layout margins */
         .resize-handle-bar {
             position: absolute;
             bottom: -8px;
@@ -106,6 +110,7 @@
             display: none;
         }
 
+        /* Active editing states highlighting canvas boxes */
         .manuscript-workspace.edit-active .resize-handle-bar {
             display: block;
         }
@@ -118,6 +123,7 @@
             outline: 2px solid #f5da91;
         }
 
+        /* Master Game Monitor Context Layer */
         .main-viewport {
             flex-grow: 1;
             border: 4px double #4a3621;
@@ -129,6 +135,7 @@
             box-sizing: border-box;
         }
 
+        /* Real-Time UTC Clock Component Container */
         .clock-container {
             position: absolute;
             top: 16px;
@@ -142,6 +149,7 @@
             z-index: 10;
         }
 
+        /* Target sizing rules tracking your background-dropped asset structure */
         .clock-hourglass-asset {
             width: 24px;
             height: 24px;
@@ -151,6 +159,7 @@
             image-rendering: crisp-edges;
         }
 
+        /* Centered Testing Matrix Text */
         .viewport-test-text {
             flex-grow: 1;
             display: flex;
@@ -159,6 +168,7 @@
             width: 100%;
         }
 
+        /* DOS Terminal Console Base Framework Styles */
         .terminal-console-panel {
             width: 100%;
             height: 180px;
@@ -228,6 +238,7 @@
             margin: 0;
         }
 
+        /* GM Calibration Widget Styling Context */
         .gm-inspector {
             position: fixed;
             bottom: 20px;
@@ -260,7 +271,7 @@
         }
         .control-group { margin-bottom: 10px; }
         .gm-inspector label { display: block; font-size: 7px; margin-bottom: 4px; }
-        .gm-inspector input type="range", .gm-inspector input type="color" {
+        .gm-inspector input[type="range"], .gm-inspector input[type="color"] {
             width: 100%;
             background: #000;
             color: #f5da91;
@@ -270,6 +281,7 @@
         .checkbox-row { display: flex; align-items: center; gap: 8px; }
         .checkbox-row input { width: auto !important; }
 
+        /* Master visibility override utility class to safely vanish inspector modules */
         .ui-hidden {
             display: none !important;
         }
@@ -279,6 +291,7 @@
 
     <div id="manuscript-workspace" class="manuscript-workspace">
         <div class="sidebar-container">
+            
             <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
@@ -359,6 +372,7 @@
             job: "None" 
         };
 
+        // Cache objects for storing raw user input configurations before replacement loops execute
         let rawPanelInputCache = {
             'text-left-top': '',
             'text-left-bottom': ''
@@ -477,6 +491,10 @@
         }
 
         function initializeFirstTimeLoginSequence() {
+            // Force reset DOM parameters on boot handshakes to remove false positive lockouts
+            terminalInput.removeAttribute('disabled');
+            terminalInput.value = '';
+            
             printTerminalLine('Please select a name ...', 'system-prompt'); 
             
             terminalInput.addEventListener('keydown', function(event) {
@@ -484,7 +502,7 @@
                     const submissionValue = terminalInput.value.trim();
                     terminalInput.value = '';
 
-                    // Blank inputs completely bypassed without network logs
+                    // Blank inputs completely bypassed without transaction logs
                     if (submissionValue === '') return;
 
                     dispatchServerSideValidation(submissionValue);
@@ -492,8 +510,12 @@
             });
             
             document.querySelector('.terminal-console-panel').addEventListener('click', () => {
-                terminalInput.focus();
+                if (!terminalInput.hasAttribute('disabled')) {
+                    terminalInput.focus();
+                }
             });
+
+            setTimeout(() => { terminalInput.focus(); }, 50);
         }
 
         function printTerminalLine(text, styleClass = '') {
@@ -514,7 +536,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name: nameInput,
-                        userId: "live_active_user_passkey_token" // Bind to handshake profile hooks
+                        userId: "live_active_user_passkey_token" 
                     })
                 });
 
@@ -727,7 +749,11 @@
 
         function loadSavedConfiguration() {
             const rawData = localStorage.getItem('wc_gm_sidebar_state');
-            if (!rawData) return;
+            if (!rawData) {
+                playerState.name = "???";
+                terminalInput.removeAttribute('disabled');
+                return;
+            }
 
             try {
                 const config = JSON.parse(rawData);
@@ -737,12 +763,19 @@
                 
                 if (config.player) {
                     playerState = config.player;
-                    if(playerState.name !== "???" && playerState.name !== "") {
-                        document.getElementById('terminal-command-line').setAttribute('disabled', 'true');
-                        // Verification sweep forcing cached human profiles straight to unified sequence rules
-                        playerState.accountnumber = "100";
-                        playerState.job = "None";
+                    
+                    // Authoritative State Evaluation: Force input text functionalities active if profile string is blank/empty
+                    if (playerState.name !== "???" && playerState.name !== "") {
+                        terminalInput.setAttribute('disabled', 'true');
+                        // Implicit override tracking: auto assigns fixed production keys on verification load splits
+                        playerState.accountnumber = "100"; 
+                        playerState.job = "None"; 
+                    } else {
+                        terminalInput.removeAttribute('disabled');
                     }
+                } else {
+                    playerState.name = "???";
+                    terminalInput.removeAttribute('disabled');
                 }
 
                 if (config.initialCreationTimestamp) {
@@ -765,6 +798,8 @@
                 });
             } catch (e) {
                 console.error("Configuration tracking load delta failed:", e);
+                playerState.name = "???";
+                terminalInput.removeAttribute('disabled');
             }
         }
     </script>
