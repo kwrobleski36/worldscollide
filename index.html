@@ -2,86 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Worlds Collide - UI Wizard Workspace</title>
+    <title>Worlds Collide - Authoritative Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Press Start 2P', monospace; }
         .manuscript-workspace { display: flex; width: 100vw; height: 100vh; padding: 12px; gap: 16px; }
-        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 10px; }
         
-        /* The Scrolls */
+        /* Two-Scroll Sidebar */
+        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 10px; }
         .scroll-panel { 
             position: relative; width: 100%; min-height: 150px;
             border-image: url('smallscroll.png') 60 20 60 20 fill; 
             border-width: 60px 20px 60px 20px; 
             resize: vertical; overflow: auto; padding: 10px;
+            font-size: 10px; outline: none;
         }
         
-        /* Font Styles */
-        .bold { font-weight: bold; }
-        .outline { text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-        
-        .main-viewport { flex-grow: 1; border: 4px double #4a3621; position: relative; }
-        .timer { position: absolute; top: 10px; right: 10px; color: #f5da91; }
+        /* Main Viewport & Console */
+        .main-viewport { flex-grow: 1; border: 4px double #4a3621; display: flex; flex-direction: column; position: relative; }
+        .timer { position: absolute; top: 10px; right: 10px; color: #f5da91; font-size: 10px; }
+        .terminal-area { flex-grow: 1; padding: 10px; color: #aaa; font-size: 9px; overflow-y: auto; }
+        #cmd-line { width: 100%; background: none; border: none; color: #fff; font-family: 'Press Start 2P', monospace; margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <div class="manuscript-workspace">
-        <div class="sidebar" id="ui-panels">
-            <div id="panel-1" class="scroll-panel" contenteditable="true">Panel 1</div>
-            <div id="panel-2" class="scroll-panel" contenteditable="true">Panel 2</div>
+        <div class="sidebar">
+            <div id="panel-left-top" class="scroll-panel" contenteditable="true">Top Scroll</div>
+            <div id="panel-left-bottom" class="scroll-panel" contenteditable="true">Bottom Scroll</div>
         </div>
-
         <div class="main-viewport">
-            <div class="timer"><img src="hourglassremove.png" width="24"> <span id="utc-clock">00:00:00 UTC</span></div>
-            <div class="terminal-console-panel">
-                <div id="log"></div>
-                <input type="text" id="cmd" autofocus>
-            </div>
+            <div class="timer"><img src="hourglassremove.png" width="48"> <span id="utc-clock">00:00:00 UTC</span></div>
+            <div class="terminal-area" id="log"></div>
+            <input type="text" id="cmd-line" placeholder="> Enter command..." autocomplete="off">
         </div>
     </div>
 
     <script>
-        // UI Wizard: Handle text styles
-        function applyStyle(style) {
-            document.execCommand(style, false, null);
-            saveLayout();
-        }
-
-        // Authoritative Persistence: Save layout to D1
-        async function saveLayout() {
-            const panels = Array.from(document.querySelectorAll('.scroll-panel')).map(p => ({
-                id: p.id,
-                height: p.style.height,
-                html: p.innerHTML
-            }));
-            await fetch('/api/ui-manager', { method: 'POST', body: JSON.stringify({ panels }) });
-        }
-
-        // Timer Logic
-        setInterval(() => {
-            document.getElementById('utc-clock').innerText = new Date().toUTCString().split(' ')[4] + " UTC";
-        }, 1000);
-
-        // Load authoritative layout on start
-        window.addEventListener('DOMContentLoaded', async () => {
+        // Sync layout and state with server-side truth
+        async function syncWithServer() {
+            // Load Layout from D1
             const res = await fetch('/api/ui-manager');
             const data = await res.json();
             if(data.panels) {
                 data.panels.forEach(p => {
                     const el = document.getElementById(p.id);
-                    el.style.height = p.height;
-                    el.innerHTML = p.html;
+                    if(el) { el.style.height = p.height; el.innerHTML = p.html; }
                 });
             }
-        });
+        }
 
-        // Add auto-save listeners to scrolls
-        document.querySelectorAll('.scroll-panel').forEach(p => {
-            p.addEventListener('blur', saveLayout);
-            p.addEventListener('mouseup', saveLayout);
-        });
+        async function persistLayout() {
+            const panels = Array.from(document.querySelectorAll('.scroll-panel')).map(p => ({
+                id: p.id, height: p.style.height, html: p.innerHTML
+            }));
+            await fetch('/api/ui-manager', { method: 'POST', body: JSON.stringify({ panels }) });
+        }
+
+        document.querySelectorAll('.scroll-panel').forEach(p => p.addEventListener('blur', persistLayout));
+        setInterval(() => document.getElementById('utc-clock').innerText = new Date().toUTCString().split(' ')[4] + " UTC", 1000);
+        window.addEventListener('DOMContentLoaded', syncWithServer);
     </script>
 </body>
 </html>
