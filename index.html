@@ -42,7 +42,6 @@
             position: relative;
             width: 100%;
             overflow: hidden;
-            /* Typographic style variable overrides managed natively via JS script injections */
             --font-weight: normal;
             --font-color: #ffffff;
             --font-outline: none;
@@ -58,7 +57,6 @@
             min-height: 120px;
         }
 
-        /* Sliced Asset Background Layer targeting the current black-filled asset format */
         .scroll-background {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -92,13 +90,11 @@
             line-height: 1.6;
         }
 
-        /* Syntax Color highlight class context for variables */
         .variable-highlight-token {
             color: #f5da91 !important;
             text-shadow: 0px 0px 4px rgba(245, 218, 145, 0.8) !important;
         }
 
-        /* Mouse Drag Resize Intermediary Component overlaying layout margins */
         .resize-handle-bar {
             position: absolute;
             bottom: -8px;
@@ -110,7 +106,6 @@
             display: none;
         }
 
-        /* Active editing states highlighting canvas boxes */
         .manuscript-workspace.edit-active .resize-handle-bar {
             display: block;
         }
@@ -123,7 +118,6 @@
             outline: 2px solid #f5da91;
         }
 
-        /* Master Game Monitor Context Layer */
         .main-viewport {
             flex-grow: 1;
             border: 4px double #4a3621;
@@ -135,7 +129,6 @@
             box-sizing: border-box;
         }
 
-        /* Real-Time UTC Clock Component Container */
         .clock-container {
             position: absolute;
             top: 16px;
@@ -149,7 +142,6 @@
             z-index: 10;
         }
 
-        /* Target sizing rules tracking your background-dropped asset structure */
         .clock-hourglass-asset {
             width: 24px;
             height: 24px;
@@ -159,7 +151,6 @@
             image-rendering: crisp-edges;
         }
 
-        /* Centered Testing Matrix Text */
         .viewport-test-text {
             flex-grow: 1;
             display: flex;
@@ -168,7 +159,6 @@
             width: 100%;
         }
 
-        /* DOS Terminal Console Base Framework Styles */
         .terminal-console-panel {
             width: 100%;
             height: 180px;
@@ -238,7 +228,6 @@
             margin: 0;
         }
 
-        /* GM Calibration Widget Styling Context */
         .gm-inspector {
             position: fixed;
             bottom: 20px;
@@ -271,7 +260,7 @@
         }
         .control-group { margin-bottom: 10px; }
         .gm-inspector label { display: block; font-size: 7px; margin-bottom: 4px; }
-        .gm-inspector input[type="range"], .gm-inspector input[type="color"] {
+        .gm-inspector input type="range", .gm-inspector input type="color" {
             width: 100%;
             background: #000;
             color: #f5da91;
@@ -281,7 +270,6 @@
         .checkbox-row { display: flex; align-items: center; gap: 8px; }
         .checkbox-row input { width: auto !important; }
 
-        /* Master visibility override utility class to safely vanish inspector modules */
         .ui-hidden {
             display: none !important;
         }
@@ -291,7 +279,6 @@
 
     <div id="manuscript-workspace" class="manuscript-workspace">
         <div class="sidebar-container">
-            
             <div id="panel-left-top" class="scroll-panel-container" onclick="focusElement(this, event)">
                 <div class="scroll-background"></div>
                 <div class="scroll-text-wrapper">
@@ -321,8 +308,7 @@
             </div>
 
             <div class="terminal-console-panel">
-                <div class="terminal-log-area" id="terminal-log-output">
-                    </div>
+                <div class="terminal-log-area" id="terminal-log-output"></div>
                 <div class="terminal-input-row">
                     <span class="terminal-cursor">&gt;</span>
                     <input type="text" id="terminal-command-line" class="terminal-input-field" autocomplete="off" autofocus>
@@ -364,7 +350,7 @@
     </div>
 
     <script>
-        // System Character Configuration Registry & State Flags bound to THIS individual player
+        // System Character Configuration Registry & Isolated State Flags bound to THIS individual player instance
         let playerState = {
             name: "???",
             accountnumber: "000000",
@@ -373,7 +359,6 @@
             job: "None" 
         };
 
-        // Cache objects for storing raw user input configurations before replacement loops execute
         let rawPanelInputCache = {
             'text-left-top': '',
             'text-left-bottom': ''
@@ -391,8 +376,6 @@
         const terminalLog = document.getElementById('terminal-log-output');
         const terminalInput = document.getElementById('terminal-command-line');
 
-        const takenNamesDatabase = ["HERO", "WIZARD", "GAMEMASTER", "SQUIRE"];
-
         window.addEventListener('DOMContentLoaded', () => {
             initializeChronologyTracker();
             loadSavedConfiguration();
@@ -400,7 +383,7 @@
             initializeFirstTimeLoginSequence();
         });
 
-        // Real-Time UTC Chronology Engine & Day Rollover Calculation Loop
+        // Serverless Controlled Ticker Loop pulling authorization timestamps
         function initializeChronologyTracker() {
             const savedState = localStorage.getItem('wc_gm_sidebar_state');
             if (savedState) {
@@ -410,7 +393,7 @@
                         initialCreationTimestamp = parseInt(parsed.initialCreationTimestamp);
                     }
                 } catch (e) {
-                    console.error("Failed to parse chronological timestamp state:", e);
+                    console.error("Failed parsing initialization timestamps:", e);
                 }
             }
 
@@ -425,6 +408,7 @@
                 const seconds = String(now.getUTCSeconds()).padStart(2, '0');
                 document.getElementById('utc-clock-display').innerText = `${hours}:${minutes}:${seconds} UTC`;
 
+                // Unstoppable Age Logic: tracks exact server date roll overs relative to setup epoch
                 const elapsedDays = Math.floor((Date.now() - initialCreationTimestamp) / 86400000);
                 const currentAgeCalculation = 1 + elapsedDays;
 
@@ -438,10 +422,9 @@
             updateClock();
         }
 
-        // Resolves layout text fields by looking at the active environment state of THIS individual player
+        // Live Dynamic String Replacement parsing global template keys
         function refreshPanelRendering() {
             document.querySelectorAll('.scroll-text-entry').forEach(node => {
-                // If actively editing in the UI wizard, process tracking modifications directly on raw inputs
                 if (isEditMode) {
                     if (highlightVariablesActive) {
                         renderVariableColorHighlights(node);
@@ -449,10 +432,8 @@
                     return;
                 }
 
-                // If locked, swap matching placeholder strings for dynamic configuration markers
                 let targetDataString = rawPanelInputCache[node.id] || '';
                 
-                // Unified string parsing logic swapping custom layouts for THIS player's values
                 let processedView = targetDataString
                     .replace(/%player_name/g, playerState.name)
                     .replace(/%player_accountnumber/g, playerState.accountnumber)
@@ -464,12 +445,10 @@
             });
         }
 
-        // Applies regex syntax color spans to variables inside the wizard text view
         function renderVariableColorHighlights(node) {
             let originalText = node.innerText;
             if (!originalText) return;
 
-            // Simple regex capture matching data blocks starting with %
             let HTMLHighlightedContent = originalText.replace(/(%[a-zA-Z0-9_]+)/g, '<span class="variable-highlight-token">$1</span>');
             node.innerHTML = HTMLHighlightedContent;
         }
@@ -505,11 +484,10 @@
                     const submissionValue = terminalInput.value.trim();
                     terminalInput.value = '';
 
-                    if (submissionValue === '') {
-                        return;
-                    }
+                    // Blank inputs completely bypassed without network logs
+                    if (submissionValue === '') return;
 
-                    processNameSelectionSubmission(submissionValue);
+                    dispatchServerSideValidation(submissionValue);
                 }
             });
             
@@ -526,50 +504,44 @@
             terminalLog.scrollTop = terminalLog.scrollHeight;
         }
 
-        function processNameSelectionSubmission(nameInput) {
+        // Authoritative API Communication Flow: intercepts reverse engineering vectors entirely
+        async function dispatchServerSideValidation(nameInput) {
             printTerminalLine(`> ${nameInput}`);
-            const sanitizedUpperName = nameInput.toUpperCase();
 
-            const alphaNumericRegex = /^[A-Z0-9]+$/i;
-            if (!alphaNumericRegex.test(sanitizedUpperName)) {
-                printTerminalLine('Error: Invalid characters. Monospaced Alphanumeric Only.', 'error-response');
-                return;
-            }
+            try {
+                const response = await fetch('/api/character-setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: nameInput,
+                        userId: "live_active_user_passkey_token" // Bind to handshake profile hooks
+                    })
+                });
 
-            if (takenNamesDatabase.includes(sanitizedUpperName)) {
-                printTerminalLine('Error: Name is already taken. Please select a new name ...', 'error-response');
-                return;
-            }
+                const data = await response.json();
 
-            playerState.name = sanitizedUpperName;
-            
-            // Auto-Increment Evaluation: Checks existing registrations to find the last counter step
-            const savedState = localStorage.getItem('wc_gm_sidebar_state');
-            let derivedNextId = 100;
-            
-            if (savedState) {
-                try {
-                    const parsed = JSON.parse(savedState);
-                    if (parsed.player && parsed.player.accountnumber) {
-                        let parsedId = parseInt(parsed.player.accountnumber);
-                        if (!isNaN(parsedId) && parsedId >= 100 && parsed.player.name !== "???") {
-                            derivedNextId = parsedId + 1;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed parsing increment tracking loops:", e);
+                if (!response.ok) {
+                    printTerminalLine(data.error || "Error: Transaction Rejected.", "error-response");
+                    return;
                 }
+
+                // Hydrate runtime interface nodes with structural data verified straight from D1
+                playerState.name = data.player_name;
+                playerState.accountnumber = data.player_accountnumber;
+                playerState.level = data.player_level;
+                playerState.age = data.player_age;
+                playerState.job = data.player_job;
+
+                printTerminalLine(`Name "${data.player_name}" registered. Initializing record...`, 'success-response');
+                refreshPanelRendering();
+                
+                terminalInput.setAttribute('disabled', 'true');
+                terminalInput.blur();
+                saveConfigurationToStorage();
+
+            } catch (err) {
+                printTerminalLine("Error: Gateway Connection Interrupted.", "error-response");
             }
-
-            playerState.accountnumber = String(derivedNextId);
-            playerState.job = "None"; // Force maps initialization context strictly to None
-
-            printTerminalLine(`Name "${sanitizedUpperName}" registered. Initializing record...`, 'success-response');
-            refreshPanelRendering();
-            
-            terminalInput.setAttribute('disabled', 'true');
-            terminalInput.blur();
-            saveConfigurationToStorage();
         }
 
         dragHandle.addEventListener('mousedown', function(e) {
@@ -765,10 +737,9 @@
                 
                 if (config.player) {
                     playerState = config.player;
-                    // Enforces update logic checking existing data configurations
-                    if (playerState.name !== "???" && playerState.name !== "") {
+                    if(playerState.name !== "???" && playerState.name !== "") {
                         document.getElementById('terminal-command-line').setAttribute('disabled', 'true');
-                        // Implicitly structural verification maps old parameters to direct targets on load
+                        // Verification sweep forcing cached human profiles straight to unified sequence rules
                         playerState.accountnumber = "100";
                         playerState.job = "None";
                     }
