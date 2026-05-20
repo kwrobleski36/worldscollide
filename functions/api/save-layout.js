@@ -5,5 +5,5 @@ export async function onRequestPost(context) {
     await env.DB.prepare("INSERT OR REPLACE INTO layout_configs (gm_id, layout_data) VALUES (?, ?)")
         .bind(gmId, JSON.stringify(layoutData)).run();
         
-    return new Response(JSON.stringify({ success: true }));
+    return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
 }
