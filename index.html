@@ -2,28 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Worlds Collide - GM Persistent Workspace</title>
+    <title>Worlds Collide - UI Wizard Workspace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Press Start 2P', monospace; }
         .manuscript-workspace { display: flex; width: 100vw; height: 100vh; padding: 12px; gap: 16px; }
-        .sidebar { width: 320px; position: relative; }
-        .scroll-panel { position: relative; width: 100%; border-image: url('smallscroll.png') 60 20 60 20 fill; border-width: 60px 20px 60px 20px; resize: vertical; overflow: auto; }
+        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* The Scrolls */
+        .scroll-panel { 
+            position: relative; width: 100%; min-height: 150px;
+            border-image: url('smallscroll.png') 60 20 60 20 fill; 
+            border-width: 60px 20px 60px 20px; 
+            resize: vertical; overflow: auto; padding: 10px;
+        }
+        
+        /* Font Styles */
+        .bold { font-weight: bold; }
+        .outline { text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        
         .main-viewport { flex-grow: 1; border: 4px double #4a3621; position: relative; }
-        .timer-container { position: absolute; top: 10px; right: 10px; color: #f5da91; }
+        .timer { position: absolute; top: 10px; right: 10px; color: #f5da91; }
     </style>
 </head>
 <body>
 
     <div class="manuscript-workspace">
         <div class="sidebar" id="ui-panels">
-            <div id="panel-left-top" class="scroll-panel" contenteditable="true">Panel 1</div>
+            <div id="panel-1" class="scroll-panel" contenteditable="true">Panel 1</div>
+            <div id="panel-2" class="scroll-panel" contenteditable="true">Panel 2</div>
         </div>
 
         <div class="main-viewport">
-            <div class="timer-container">
-                <img src="hourglassremove.png" width="24">
-                <span id="utc-clock">00:00:00 UTC</span>
-            </div>
+            <div class="timer"><img src="hourglassremove.png" width="24"> <span id="utc-clock">00:00:00 UTC</span></div>
             <div class="terminal-console-panel">
                 <div id="log"></div>
                 <input type="text" id="cmd" autofocus>
@@ -32,38 +43,44 @@
     </div>
 
     <script>
-        // Restoring GM UI Designer Logic
-        let gmMode = true; 
-
-        function applyLayoutToUI(config) {
-            if(!config || !config.panels) return;
-            // logic to apply saved percentages to panel divs
+        // UI Wizard: Handle text styles
+        function applyStyle(style) {
+            document.execCommand(style, false, null);
+            saveLayout();
         }
 
+        // Authoritative Persistence: Save layout to D1
         async function saveLayout() {
-            const panels = document.querySelectorAll('.scroll-panel');
-            const layoutData = { panels: Array.from(panels).map(p => ({ id: p.id, height: p.style.height })) };
-            await fetch('/api/ui-manager', { method: 'POST', body: JSON.stringify(layoutData) });
+            const panels = Array.from(document.querySelectorAll('.scroll-panel')).map(p => ({
+                id: p.id,
+                height: p.style.height,
+                html: p.innerHTML
+            }));
+            await fetch('/api/ui-manager', { method: 'POST', body: JSON.stringify({ panels }) });
         }
 
-        // Restoring Hourglass Timer
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('utc-clock').innerText = now.toUTCString().split(' ')[4] + " UTC";
-        }
-        setInterval(updateClock, 1000);
+        // Timer Logic
+        setInterval(() => {
+            document.getElementById('utc-clock').innerText = new Date().toUTCString().split(' ')[4] + " UTC";
+        }, 1000);
 
-        // Restoring Text Editing
-        document.querySelectorAll('.scroll-panel').forEach(p => {
-            p.addEventListener('blur', saveLayout); // Auto-save on blur
-        });
-
-        // Sync with Server on Load
+        // Load authoritative layout on start
         window.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch('/api/ui-manager');
-            const config = await res.json();
-            applyLayoutToUI(config);
-            updateClock();
+            const data = await res.json();
+            if(data.panels) {
+                data.panels.forEach(p => {
+                    const el = document.getElementById(p.id);
+                    el.style.height = p.height;
+                    el.innerHTML = p.html;
+                });
+            }
+        });
+
+        // Add auto-save listeners to scrolls
+        document.querySelectorAll('.scroll-panel').forEach(p => {
+            p.addEventListener('blur', saveLayout);
+            p.addEventListener('mouseup', saveLayout);
         });
     </script>
 </body>
